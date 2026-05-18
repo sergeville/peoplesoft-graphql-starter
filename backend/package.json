@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "mock-ib": "tsx watch src/mock-ib-server.ts",
+    "export:employees": "tsx scripts/export-employees-csv.ts",
+    "sync:sheet": "tsx scripts/sync-employees-from-sheet.ts",
     "start": "node dist/server.js",
     "build": "tsc",
     "typecheck": "tsc --noEmit"

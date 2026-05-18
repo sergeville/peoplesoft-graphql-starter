@@ -9,12 +9,26 @@ export const resolvers = {
   Query: {
     employees: async (
       _: unknown,
-      args: { asOfDate?: string | null },
+      args: {
+        asOfDate?: string | null;
+        limit?: number | null;
+        offset?: number | null;
+      },
       ctx: GraphQLContext,
     ): Promise<EmployeeParent[]> => {
-      const rows = await ctx.employeeService.listEmployees(args.asOfDate);
+      const rows = await ctx.employeeService.listEmployees(
+        args.asOfDate,
+        args.limit,
+        args.offset,
+      );
       return rows.map((row) => ({ ...row, asOfDate: args.asOfDate ?? null }));
     },
+
+    employeeCount: async (
+      _: unknown,
+      args: { asOfDate?: string | null },
+      ctx: GraphQLContext,
+    ): Promise<number> => ctx.employeeService.countEmployees(args.asOfDate),
 
     employee: async (
       _: unknown,

@@ -18,6 +18,7 @@ export const typeDefs = `#graphql
 
   type Query {
     employee(id: ID!, asOfDate: String): Employee
-    employees(asOfDate: String): [Employee!]!
+    employees(asOfDate: String, limit: Int, offset: Int): [Employee!]!
+    employeeCount(asOfDate: String): Int!
   }
 `;

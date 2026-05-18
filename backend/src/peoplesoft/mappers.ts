@@ -6,7 +6,13 @@ export function mapIntegrationBrokerEmployee(payload: unknown): EmployeeRecord {
   return {
     emplid: String(row.EMPLID ?? row.emplid ?? ""),
     name: String(row.NAME ?? row.name ?? ""),
-    email: row.EMAIL ? String(row.EMAIL) : row.email ? String(row.email) : null,
+    email: row.EMAIL
+      ? String(row.EMAIL)
+      : row.EMAIL_ADDR
+        ? String(row.EMAIL_ADDR)
+        : row.email
+          ? String(row.email)
+          : null,
     department: row.DEPTID
       ? String(row.DEPTID)
       : row.department

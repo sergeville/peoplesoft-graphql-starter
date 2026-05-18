@@ -4,7 +4,10 @@ import {
 } from "../peoplesoft/effectiveDating.js";
 import { createIntegrationBrokerClientFromEnv } from "../peoplesoft/integrationBrokerClient.js";
 import { buildJobHistory, jobRowToEmployee } from "../peoplesoft/jobHistory.js";
-import { mockJobRows } from "../peoplesoft/mockData.js";
+import {
+  mockEmplids,
+  mockJobRowsByEmplid,
+} from "../peoplesoft/mockJobIndex.js";
 import type { EmployeeRecord, JobRecord } from "../peoplesoft/types.js";
 
 export type EmployeeServiceContext = {
@@ -18,22 +21,46 @@ export class EmployeeService {
     return asOfDate?.trim() || todayIsoDate();
   }
 
-  async listEmployees(asOfDate?: string | null): Promise<EmployeeRecord[]> {
+  async listEmployees(
+    asOfDate?: string | null,
+    limit?: number | null,
+    offset?: number | null,
+  ): Promise<EmployeeRecord[]> {
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
-      const emplids = [...new Set(mockJobRows.map((row) => row.emplid))];
+      const start = Math.max(0, offset ?? 0);
+      const end =
+        limit != null && limit > 0 ? start + limit : mockEmplids.length;
+      const slice = mockEmplids.slice(start, end);
       const employees: EmployeeRecord[] = [];
 
-      for (const emplid of emplids) {
-        const row = await this.getEmployee(emplid, asOf);
-        if (row) employees.push(row);
+      for (const emplid of slice) {
+        const rows = mockJobRowsByEmplid.get(emplid);
+        if (!rows) continue;
+        const effective = pickEffectiveRow(rows, asOf);
+        if (effective) employees.push(jobRowToEmployee(effective));
       }
 
-      return employees.sort((a, b) => a.emplid.localeCompare(b.emplid));
+      return employees;
     }
 
     const client = createIntegrationBrokerClientFromEnv();
-    return client.fetchEmployees();
+    return client.fetchEmployees(asOfDate, limit, offset);
+  }
+
+  async countEmployees(asOfDate?: string | null): Promise<number> {
+    if (this.ctx.dataSource === "mock") {
+      const asOf = this.resolveAsOfDate(asOfDate);
+      let count = 0;
+      for (const emplid of mockEmplids) {
+        const rows = mockJobRowsByEmplid.get(emplid);
+        if (rows && pickEffectiveRow(rows, asOf)) count += 1;
+      }
+      return count;
+    }
+
+    const client = createIntegrationBrokerClientFromEnv();
+    return client.countEmployees(asOfDate);
   }
 
   async getEmployee(
@@ -42,13 +69,14 @@ export class EmployeeService {
   ): Promise<EmployeeRecord | null> {
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
-      const rows = mockJobRows.filter((row) => row.emplid === emplid);
+      const rows = mockJobRowsByEmplid.get(emplid);
+      if (!rows) return null;
       const effective = pickEffectiveRow(rows, asOf);
       return effective ? jobRowToEmployee(effective) : null;
     }
 
     const client = createIntegrationBrokerClientFromEnv();
-    return client.fetchEmployee(emplid);
+    return client.fetchEmployee(emplid, asOfDate);
   }
 
   async getJobHistory(
@@ -58,8 +86,8 @@ export class EmployeeService {
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
       const asOfMs = Date.parse(asOf);
-      const rows = mockJobRows.filter(
-        (row) => row.emplid === emplid && Date.parse(row.effdt) <= asOfMs,
+      const rows = (mockJobRowsByEmplid.get(emplid) ?? []).filter(
+        (row) => Date.parse(row.effdt) <= asOfMs,
       );
       return buildJobHistory(rows);
     }

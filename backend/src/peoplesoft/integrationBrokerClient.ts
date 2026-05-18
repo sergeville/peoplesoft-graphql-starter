@@ -14,9 +14,37 @@ type IntegrationBrokerConfig = {
 export class IntegrationBrokerClient {
   constructor(private readonly config: IntegrationBrokerConfig) {}
 
-  async fetchEmployee(emplid: string): Promise<EmployeeRecord | null> {
+  private buildUrl(
+    path: string,
+    params?: {
+      asOfDate?: string | null;
+      limit?: number | null;
+      offset?: number | null;
+    },
+  ): string {
+    const base = `${this.config.baseUrl.replace(/\/$/, "")}${path}`;
+    const search = new URLSearchParams();
+    if (params?.asOfDate?.trim()) {
+      search.set("asOfDate", params.asOfDate.trim());
+    }
+    if (params?.limit != null && params.limit > 0) {
+      search.set("limit", String(params.limit));
+    }
+    if (params?.offset != null && params.offset >= 0) {
+      search.set("offset", String(params.offset));
+    }
+    const query = search.toString();
+    return query ? `${base}?${query}` : base;
+  }
+
+  async fetchEmployee(
+    emplid: string,
+    asOfDate?: string | null,
+  ): Promise<EmployeeRecord | null> {
     // TODO: replace path with your IB REST resource, e.g. /EMPLOYEE/v1/{emplid}
-    const url = `${this.config.baseUrl.replace(/\/$/, "")}/employee/${encodeURIComponent(emplid)}`;
+    const url = this.buildUrl(`/employee/${encodeURIComponent(emplid)}`, {
+      asOfDate,
+    });
     const auth = Buffer.from(
       `${this.config.username}:${this.config.password}`,
     ).toString("base64");
@@ -39,8 +67,12 @@ export class IntegrationBrokerClient {
     return mapIntegrationBrokerEmployee(payload);
   }
 
-  async fetchEmployees(): Promise<EmployeeRecord[]> {
-    const url = `${this.config.baseUrl.replace(/\/$/, "")}/employees`;
+  async fetchEmployees(
+    asOfDate?: string | null,
+    limit?: number | null,
+    offset?: number | null,
+  ): Promise<EmployeeRecord[]> {
+    const url = this.buildUrl("/employees", { asOfDate, limit, offset });
     const auth = Buffer.from(
       `${this.config.username}:${this.config.password}`,
     ).toString("base64");
@@ -58,13 +90,44 @@ export class IntegrationBrokerClient {
       );
     }
 
-    const payload = (await response.json()) as { rows?: unknown[]; data?: unknown[] };
+    const payload = (await response.json()) as {
+      rows?: unknown[];
+      data?: unknown[];
+    };
     const rows = payload.rows ?? payload.data ?? [];
     if (!Array.isArray(rows)) {
       throw new Error("Unexpected Integration Broker list response shape");
     }
 
     return rows.map(mapIntegrationBrokerEmployee);
+  }
+
+  async countEmployees(asOfDate?: string | null): Promise<number> {
+    const url = this.buildUrl("/employees/count", { asOfDate });
+    const auth = Buffer.from(
+      `${this.config.username}:${this.config.password}`,
+    ).toString("base64");
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Basic ${auth}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Integration Broker count failed (${response.status}): ${await response.text()}`,
+      );
+    }
+
+    const payload = (await response.json()) as { total?: number; count?: number };
+    const total = payload.total ?? payload.count;
+    if (typeof total !== "number") {
+      throw new Error("Unexpected Integration Broker count response shape");
+    }
+
+    return total;
   }
 }
 
