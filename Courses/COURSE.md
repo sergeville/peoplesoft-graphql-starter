@@ -13,7 +13,7 @@
 1. Clone/open the repo and complete **Module 0** setup.
 2. Do each module in order; **Labs** are hands-on (required).
 3. Use **Checkpoint questions** to verify understanding before moving on.
-4. Deep dives live in `backend/data/*.md` — especially [TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](./backend/data/CODE_PATH_GRAPHQL_TO_PS.md).
+4. Deep dives live in this `Courses/` folder — especially [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md).
 
 | Module | Topic | ~Time |
 |--------|--------|-------|
@@ -151,8 +151,8 @@ The frontend **never** talks to PeopleSoft directly. GraphQL is **internal** to 
 ### Read
 
 - Root [README.md](./README.md) — Architecture & two sides
-- [backend/data/TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md) — org split, deliverables, questions for PS team
-- [backend/data/CODE_PATH_GRAPHQL_TO_PS.md](./backend/data/CODE_PATH_GRAPHQL_TO_PS.md) — trace Save → `fetch()`
+- [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — org split, deliverables, questions for PS team
+- [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — trace Save → `fetch()`
 - Your notes: `StepGrapQL.md` (concepts)
 
 ### Lab 1.1 — Find the team boundary in code
@@ -437,7 +437,7 @@ One **employee** (`emplid`) can have **many rows** over time (`effdt`, position,
 
 ### Google Sheets workflow
 
-See [backend/data/GOOGLE_SHEETS.md](./backend/data/GOOGLE_SHEETS.md).
+See [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md).
 
 ```bash
 npm run export:employees   # CSV from generator
@@ -631,7 +631,7 @@ mutation {
 
 ### Working with the PeopleSoft team
 
-Re-read [backend/data/TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md) before production planning.
+Re-read [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) before production planning.
 
 Your integration checklist with the PS team:
 
@@ -652,7 +652,7 @@ Manager SSO → Next.js session → GraphQL BFF
 
 ### Read thoroughly
 
-[backend/data/PEOPLESOFT_IB_ROW_SECURITY.md](./backend/data/PEOPLESOFT_IB_ROW_SECURITY.md)
+[PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md)
 
 ### Concepts to internalize
 
@@ -691,7 +691,7 @@ Write half a page answering:
 **Track B — Integration readiness**
 
 - Document real `PS_BASE_URL` paths and JSON samples in `integrationBrokerClient.ts`.
-- Add a one-page **team contract** appendix (your GraphQL vs their IB REST) — use [TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md) as template.
+- Add a one-page **team contract** appendix (your GraphQL vs their IB REST) — use [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) as template.
 - Add `PsAuth` placeholder to `context.ts` (no real SSO required).
 
 **Track C — Operations**
@@ -742,15 +742,18 @@ BACKEND
   peoplesoft/mappers.ts        PS JSON → EmployeeRecord
   peoplesoft/effectiveDating.ts
   mock-ib-server.ts            Port 4100
-  data/employees.csv           Dataset
-  data/TEAM_BOUNDARIES.md
-  data/CODE_PATH_GRAPHQL_TO_PS.md
-  data/GOOGLE_SHEETS.md
-  data/PEOPLESOFT_IB_ROW_SECURITY.md
+  data/employees.csv           Dataset (runtime mock data)
+
+Courses/
+  COURSE.md                    This file
+  TEAM_BOUNDARIES.md
+  CODE_PATH_GRAPHQL_TO_PS.md
+  GOOGLE_SHEETS.md
+  PEOPLESOFT_IB_ROW_SECURITY.md
 
 ROOT
   package.json                 dev, dev:mock-ps, export:employees
-  COURSE.md                    This file
+  README.md
 ```
 
 ---
@@ -784,11 +787,11 @@ npm run typecheck        # Backend tsc (in backend/)
 
 ## Suggested reading order (docs)
 
-1. [README.md](./README.md)
-2. [TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md)
-3. [CODE_PATH_GRAPHQL_TO_PS.md](./backend/data/CODE_PATH_GRAPHQL_TO_PS.md)
-4. [GOOGLE_SHEETS.md](./backend/data/GOOGLE_SHEETS.md)
-5. [PEOPLESOFT_IB_ROW_SECURITY.md](./backend/data/PEOPLESOFT_IB_ROW_SECURITY.md)
+1. [README.md](../README.md)
+2. [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md)
+3. [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md)
+4. [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md)
+5. [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md)
 6. Apollo GraphQL docs: https://www.apollographql.com/docs
 7. Next.js App Router: https://nextjs.org/docs
 

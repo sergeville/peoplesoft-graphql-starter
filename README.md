@@ -2,8 +2,8 @@
 
 Next.js UI → Apollo GraphQL (port **4000**) → **mock** PeopleSoft data → swap to **Integration Broker REST**.
 
-**Full-stack course (frontend → backend → PeopleSoft):** [COURSE.md](./COURSE.md)  
-**App team vs PeopleSoft team (org boundaries):** [backend/data/TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md)
+**Full-stack course (frontend → backend → PeopleSoft):** [Courses/COURSE.md](./Courses/COURSE.md)  
+**App team vs PeopleSoft team (org boundaries):** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md)
 
 ## Quick start
 
@@ -45,16 +45,16 @@ In many organizations **your app team** owns Side 1; a **PeopleSoft team** owns 
 ```
 
 - **`PEOPLESOFT_DATA_SOURCE=mock`** — Side 2 is local CSV/memory (no PS team, no HTTP).
-- **`PEOPLESOFT_DATA_SOURCE=integration-broker`** — Side 2 is `integrationBrokerClient.ts` → `PS_BASE_URL` (real PS, mock IB on :4100, or [Google Sheet via Apps Script](./backend/data/GOOGLE_SHEET_AS_MOCK_PS.md)).
+- **`PEOPLESOFT_DATA_SOURCE=integration-broker`** — Side 2 is `integrationBrokerClient.ts` → `PS_BASE_URL` (real PS, mock IB on :4100, or [Google Sheet via Apps Script](./Courses/GOOGLE_SHEET_AS_MOCK_PS.md)).
 
 **Study the PS boundary in:** `backend/src/peoplesoft/integrationBrokerClient.ts`  
-**Full write-up:** [backend/data/TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md) · [CODE_PATH_GRAPHQL_TO_PS.md](./backend/data/CODE_PATH_GRAPHQL_TO_PS.md)
+**Full write-up:** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md) · [Courses/CODE_PATH_GRAPHQL_TO_PS.md](./Courses/CODE_PATH_GRAPHQL_TO_PS.md)
 
 ## Edit employees in Google Sheets
 
 1. `npm run export:employees` → creates `backend/data/employees.csv`
 2. Import that CSV into [Google Sheets](https://sheets.google.com)
-3. Add / edit / delete rows (see `backend/data/GOOGLE_SHEETS.md` for column headers)
+3. Add / edit / delete rows (see [Courses/GOOGLE_SHEETS.md](./Courses/GOOGLE_SHEETS.md) for column headers)
 4. Download CSV back **or** `npm run sync:sheet` with a published Sheet URL
 5. Restart the backend — data loads into GraphQL objects automatically
 

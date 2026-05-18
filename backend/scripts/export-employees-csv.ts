@@ -20,4 +20,4 @@ writeFileSync(csvPath, `${jobRowsToCsv(rows)}\n`, "utf8");
 console.log(`Wrote ${rows.length} job rows (${count} employees) to:`);
 console.log(csvPath);
 console.log("");
-console.log("Next: import this file into Google Sheets (see data/GOOGLE_SHEETS.md)");
+console.log("Next: import this file into Google Sheets (see Courses/GOOGLE_SHEETS.md)");
