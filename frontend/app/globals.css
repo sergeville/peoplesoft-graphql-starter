@@ -1,0 +1,216 @@
+:root {
+  color-scheme: light dark;
+  --bg: #0f1419;
+  --panel: #1a2332;
+  --text: #e8eef7;
+  --muted: #9aa8bc;
+  --accent: #3b82f6;
+  --border: #2a3a52;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  background: radial-gradient(circle at top, #1a2740, var(--bg));
+  color: var(--text);
+  min-height: 100vh;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+h1 {
+  margin: 0 0 0.35rem;
+  font-size: 2rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin: 0 0 2rem;
+}
+
+.arch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.arch span {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+}
+
+.arch .arrow {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.employee-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.employee-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+.employee-card p {
+  margin: 0.35rem 0 0;
+}
+
+.badge {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  color: #f87171;
+}
+
+.employee-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.employee-link:hover {
+  color: var(--accent);
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.detail-header h1 {
+  margin: 0;
+}
+
+.date-bar {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.date-bar label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.date-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.date-controls input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+}
+
+.date-controls button {
+  background: var(--accent);
+  border: none;
+  color: white;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+}
+
+.hint code {
+  background: var(--bg);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0 0 2rem;
+}
+
+.facts dt {
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.history-table th,
+.history-table td {
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+}
+
+.history-table th {
+  background: var(--panel);
+  color: var(--muted);
+}
