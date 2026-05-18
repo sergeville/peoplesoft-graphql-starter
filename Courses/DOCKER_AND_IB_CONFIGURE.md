@@ -14,6 +14,70 @@ After this module you can:
 2. Explain what your **PeopleSoft team configures** in Integration Broker vs what **your team** configures in `.env`.
 3. Map each mock REST path to a typical **IB service operation**.
 4. Restart containers when code or env changes.
+5. Decide when a **Docker mock PS** is appropriate vs when to use **real Integration Broker** on your site.
+
+---
+
+## Architecture decision: Should PeopleSoft be a Docker component?
+
+**Short answer:** A **mock** PeopleSoft side in Docker is a **good idea for dev and learning**. Running **real** PeopleSoft in a container is **not** how enterprises deploy PS — and you should not try to replace the PS team’s environment with a container in this repo.
+
+### What `mock-ps` actually is
+
+```text
+mock-ps (Docker)  = fake Integration Broker REST  →  good for local / course / CI
+real PeopleSoft     = PS team servers + IB on your site  →  production
+```
+
+The `mock-ps` service is **not** PeopleSoft and **not** Oracle. It only **imitates** IB REST so your GraphQL BFF practices the same HTTP contract (`PS_BASE_URL`, Basic auth, JSON shape).
+
+### When a Docker “PS part” is a good idea
+
+| Use case | Verdict |
+|----------|---------|
+| Local dev — no PS VPN or credentials yet | ✅ Strong yes |
+| Course / demos — predictable data | ✅ Yes |
+| CI — spin full stack in a pipeline | ✅ Yes |
+| Team onboarding — one `docker compose up` | ✅ Yes |
+| Contract testing — stable JSON for `mappers.ts` | ✅ Yes |
+
+**Benefits**
+
+- Same three-layer story as production: UI → GraphQL → REST
+- No dependency on a shared dev PS environment
+- Fast reset (`docker compose down` then `up --build`)
+- Safe — cannot corrupt real HR data
+
+### When it is not a good idea
+
+| Idea | Verdict |
+|------|---------|
+| Run **real** PeopleSoft + Oracle inside your `docker-compose.yml` | ❌ No — licensed, heavy, owned by PS team |
+| Use the Docker **mock** in **production** | ❌ No — set `PS_BASE_URL` to real IB; omit `mock-ps` |
+| Point anything at the **production** PS database from your containers | ❌ Never |
+| Assume mock behavior equals full PS (PeopleCode, row security, upgrades) | ❌ Mock is a contract simulator only |
+
+### Production pattern (recommended)
+
+```text
+Your Docker / Kubernetes:     frontend + backend  (GraphQL BFF)
+Your organization’s site:     PeopleSoft Integration Broker  (PS team)
+                              → PeopleCode / CI / Oracle (inside PS — you do not containerize this)
+```
+
+| Environment | PS “component” |
+|-------------|----------------|
+| Developer laptop | `mock-ps` in Docker **or** `npm run dev:mock-ps` |
+| CI (optional) | `mock-ps` in compose |
+| Staging / production | **No** `mock-ps` — only `backend` + `frontend`; `PS_BASE_URL` → real IB on your site |
+
+### Rule of thumb
+
+> **Docker for mock IB = good.**  
+> **Docker for real PeopleSoft = no.**  
+> **Production PS = always the PS team’s Integration Broker URL, not a container in this repo.**
+
+Keep `mock-ps` as a **Side 2 simulator** (see [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md)), not a substitute for PeopleSoft.
 
 ---
 
@@ -38,7 +102,7 @@ docker compose up --build
 
 | URL | What |
 |-----|------|
-| http://localhost:3000 | Next.js UI |
+| http://localhost:3001 | Next.js UI (Docker; host port 3001) |
 | http://localhost:4000 | GraphQL Sandbox |
 | http://localhost:4100/ | Mock IB discovery JSON |
 | http://localhost:4100/employees | List (Basic `demo` / `demo`) |
@@ -59,6 +123,16 @@ In the UI, open the employee list — traffic path is UI → GraphQL → `http:/
 | TypeScript / React | `docker compose up --build` |
 | `docker-compose.yml` or env | `docker compose down` then `docker compose up --build` |
 | Only browser refresh | Nothing |
+
+### Troubleshooting: `frontend` stopped / port 3000 in use
+
+Docker maps the UI to **host port 3001** so it does not fight with local `npm run dev` on 3000.
+
+| Symptom | Fix |
+|---------|-----|
+| `bind: address already in use` on 3000 | Use http://localhost:3001 after `docker compose up`, or run `docker compose down` and stop local Next.js |
+| `frontend-1` Created but not running | `docker compose up frontend` after `mock-ps` is healthy |
+| HTTP 500 in Docker Desktop | Often frontend never started — check **Containers** tab; start frontend or free the port |
 
 ---
 
@@ -164,6 +238,9 @@ docker compose -f docker-compose.yml -f docker-compose.real-ps.example.yml up --
 3. What is `PS_BASE_URL` in one sentence?
 4. Why does the browser never call `PS_BASE_URL` directly?
 5. Which file converts PS JSON → GraphQL types?
+6. Is `mock-ps` real PeopleSoft? What is it for?
+7. Should `mock-ps` run in production? What runs instead?
+8. Name one benefit and one limit of the Docker mock PS component.
 
 ---
 

@@ -3,7 +3,7 @@
 #
 #   docker compose up --build
 #
-#   UI:      http://localhost:3000
+#   UI:      http://localhost:3001  (host 3001 — avoids clash with local npm run dev on 3000)
 #   GraphQL: http://localhost:4000
 #   Mock IB: http://localhost:4100/employees  (Basic demo / demo)
 # =============================================================================
@@ -117,7 +117,7 @@ services:
       args:
         GRAPHQL_INTERNAL_URL: http://backend:4000/
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - backend
     environment:

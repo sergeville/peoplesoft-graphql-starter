@@ -29,7 +29,7 @@ docker compose up --build
 
 | URL | Service |
 |-----|---------|
-| http://localhost:3000 | Next.js UI |
+| http://localhost:3001 | Next.js UI (3001 avoids clash with local `npm run dev` on 3000) |
 | http://localhost:4000 | GraphQL |
 | http://localhost:4100/employees | Mock PS REST (Basic `demo` / `demo`) |
 

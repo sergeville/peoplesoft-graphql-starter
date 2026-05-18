@@ -509,6 +509,19 @@ Read `mockIntegrationBroker/server.ts` and `payloads.ts`.
 - Run **mock-ps + backend + frontend** with `docker compose up --build`.
 - Relate Docker env vars (`PS_BASE_URL`, `PS_USERNAME`) to what the **PeopleSoft team** sets in Integration Broker.
 - Know when to **restart** containers after code/env changes.
+- Explain why **mock PS in Docker is good for dev** but **real PS is not containerized** in this project.
+
+### Architecture decision (read first)
+
+**[DOCKER_AND_IB_CONFIGURE.md § Architecture decision](./DOCKER_AND_IB_CONFIGURE.md#architecture-decision-should-peoplesoft-be-a-docker-component)**
+
+| Question | Answer |
+|----------|--------|
+| Docker mock PS (`mock-ps`)? | ✅ Dev, course, CI — simulates Integration Broker REST |
+| Real PeopleSoft in Docker? | ❌ PS team hosts PS + IB on your site |
+| Production compose services? | `frontend` + `backend` only; `PS_BASE_URL` → real IB |
+
+> Docker for **mock** IB = good. Docker for **real** PeopleSoft = no.
 
 ### Quick start
 
@@ -516,7 +529,7 @@ Read `mockIntegrationBroker/server.ts` and `payloads.ts`.
 docker compose up --build
 ```
 
-Open http://localhost:3000 — same app as `npm run dev:mock-ps`, but all three services run in containers.
+Open http://localhost:3001 — same app as `npm run dev:mock-ps`, but all three services run in containers (Docker uses host port **3001** so local `npm run dev` on 3000 can still run).
 
 ### What you would see in real PeopleSoft (summary)
 
@@ -547,6 +560,8 @@ Detailed tables and PeopleTools navigation: **DOCKER_AND_IB_CONFIGURE.md** and c
 - Why are three Docker services required for the mock stack?
 - Where is IB actually configured — in compose or in PeopleTools?
 - What URL goes in `PS_BASE_URL` for production?
+- Is `mock-ps` real PeopleSoft? Should it run in production?
+- Name one benefit of Docker mock PS and one thing it cannot simulate.
 
 ---
 
