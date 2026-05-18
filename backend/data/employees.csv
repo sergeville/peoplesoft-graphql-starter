@@ -1,6 +1,4 @@
 emplid,effdt,effseq,name,email,department,position,salary,manager_emplid
-100001,2024-01-01,0,Jane Doe,jane.doe@example.com,Engineering,Software Engineer,95000,100003
-100001,2025-06-01,0,Jane Doe,jane.doe@example.com,Engineering,Senior Software Engineer,110000,100003
 100002,2023-03-15,0,John Smith,john.smith@example.com,Finance,Financial Analyst,82000,100003
 100003,2022-01-10,0,Alex Rivera,alex.rivera@example.com,Engineering,Director of Engineering,165000,
 100004,2021-01-04,0,Maria Smith,maria.smith.100004@example.com,Operations,Senior Engineer,89250,100001
@@ -1142,3 +1140,4 @@ emplid,effdt,effseq,name,email,department,position,salary,manager_emplid
 100998,2020-04-07,0,Yuki Lewis,yuki.lewis.100998@example.com,Sales,Engineer,106750,100991
 100999,2021-04-09,0,Lucas Johnson,lucas.johnson.100999@example.com,Legal,Senior Engineer,115500,100991
 101000,2022-04-10,0,Elena Anderson,elena.anderson.101000@example.com,Marketing,Manager,124250,100991
+101001,2026-05-18,0,Joe,joe@example.com,,Employee,0,100003

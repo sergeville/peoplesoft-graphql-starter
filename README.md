@@ -2,6 +2,9 @@
 
 Next.js UI → Apollo GraphQL (port **4000**) → **mock** PeopleSoft data → swap to **Integration Broker REST**.
 
+**Full-stack course (frontend → backend → PeopleSoft):** [COURSE.md](./COURSE.md)  
+**App team vs PeopleSoft team (org boundaries):** [backend/data/TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md)
+
 ## Quick start
 
 ```bash
@@ -24,6 +27,28 @@ Browser
   → EmployeeService
   → mock data | Integration Broker REST
 ```
+
+### Two sides (and why it matters at work)
+
+In many organizations **your app team** owns Side 1; a **PeopleSoft team** owns Side 2.
+
+| Side | What | Contract |
+|------|------|----------|
+| **1 — App** | Next.js UI + GraphQL BFF (ports 3000 / 4000) | GraphQL (`employees`, mutations) — **your** frontend only talks here |
+| **2 — PeopleSoft** | Integration Broker REST (or local stand-in) | HTTP + JSON (`EMPLID`, `EMAIL_ADDR`, …) — **between teams**, not GraphQL |
+
+```text
+┌─────────────────────────────┐         ┌────────────────────────────────┐
+│  Side 1 (this repo)         │         │  Side 2 (often another team) │
+│  Frontend → GraphQL BFF     │  HTTP   │  Integration Broker → PS       │
+└─────────────────────────────┘         └────────────────────────────────┘
+```
+
+- **`PEOPLESOFT_DATA_SOURCE=mock`** — Side 2 is local CSV/memory (no PS team, no HTTP).
+- **`PEOPLESOFT_DATA_SOURCE=integration-broker`** — Side 2 is `integrationBrokerClient.ts` → `PS_BASE_URL` (real PS, mock IB on :4100, or [Google Sheet via Apps Script](./backend/data/GOOGLE_SHEET_AS_MOCK_PS.md)).
+
+**Study the PS boundary in:** `backend/src/peoplesoft/integrationBrokerClient.ts`  
+**Full write-up:** [backend/data/TEAM_BOUNDARIES.md](./backend/data/TEAM_BOUNDARIES.md) · [CODE_PATH_GRAPHQL_TO_PS.md](./backend/data/CODE_PATH_GRAPHQL_TO_PS.md)
 
 ## Edit employees in Google Sheets
 
@@ -109,3 +134,6 @@ frontend/
   components/       # EmployeeList, ApolloWrapper
   lib/              # Apollo client
 ```
+
+# Google Sheets as the employee source
+https://docs.google.com/spreadsheets/d/e/2PACX-1vQyNmWHCtWVtuiko06XwiKhZaa-2s0OJsixiiJKn9zRB0Fh420g6jkYaCUoY-c9EQSgQIUoLXXWQq6D/pub?gid=164390836&single=true&output=csv

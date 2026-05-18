@@ -41,6 +41,57 @@ export const resolvers = {
     },
   },
 
+  Mutation: {
+    createEmployee: async (
+      _: unknown,
+      args: {
+        input: {
+          emplid?: string | null;
+          name: string;
+          email?: string | null;
+          department?: string | null;
+          position?: string | null;
+          salary?: number | null;
+          managerEmplid?: string | null;
+          effdt?: string | null;
+        };
+      },
+      ctx: GraphQLContext,
+    ): Promise<EmployeeParent> => {
+      const row = await ctx.employeeService.createEmployee(args.input);
+      return { ...row, asOfDate: args.input.effdt ?? null };
+    },
+
+    updateEmployee: async (
+      _: unknown,
+      args: {
+        emplid: string;
+        input: {
+          name: string;
+          email?: string | null;
+          department?: string | null;
+          position?: string | null;
+          salary?: number | null;
+          managerEmplid?: string | null;
+          effdt?: string | null;
+        };
+      },
+      ctx: GraphQLContext,
+    ): Promise<EmployeeParent> => {
+      const row = await ctx.employeeService.updateEmployee(
+        args.emplid,
+        args.input,
+      );
+      return { ...row, asOfDate: args.input.effdt ?? null };
+    },
+
+    deleteEmployee: async (
+      _: unknown,
+      args: { emplid: string },
+      ctx: GraphQLContext,
+    ): Promise<boolean> => ctx.employeeService.deleteEmployee(args.emplid),
+  },
+
   Employee: {
     manager: async (
       parent: EmployeeParent,

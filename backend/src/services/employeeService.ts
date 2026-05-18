@@ -5,6 +5,12 @@ import {
 import { createIntegrationBrokerClientFromEnv } from "../peoplesoft/integrationBrokerClient.js";
 import { buildJobHistory, jobRowToEmployee } from "../peoplesoft/jobHistory.js";
 import {
+  createEmployeeInStore,
+  deleteEmployeeFromStore,
+  updateEmployeeInStore,
+  type EmployeeWriteInput,
+} from "../peoplesoft/employeeStore.js";
+import {
   mockEmplids,
   mockJobRowsByEmplid,
 } from "../peoplesoft/mockJobIndex.js";
@@ -102,6 +108,33 @@ export class EmployeeService {
   ): Promise<EmployeeRecord | null> {
     if (!emplid) return null;
     return this.getEmployee(emplid, asOfDate);
+  }
+
+  async createEmployee(input: EmployeeWriteInput): Promise<EmployeeRecord> {
+    if (this.ctx.dataSource === "mock") {
+      return createEmployeeInStore(input);
+    }
+    const client = createIntegrationBrokerClientFromEnv();
+    return client.createEmployee(input);
+  }
+
+  async updateEmployee(
+    emplid: string,
+    input: EmployeeWriteInput,
+  ): Promise<EmployeeRecord> {
+    if (this.ctx.dataSource === "mock") {
+      return updateEmployeeInStore(emplid, input);
+    }
+    const client = createIntegrationBrokerClientFromEnv();
+    return client.updateEmployee(emplid, input);
+  }
+
+  async deleteEmployee(emplid: string): Promise<boolean> {
+    if (this.ctx.dataSource === "mock") {
+      return deleteEmployeeFromStore(emplid);
+    }
+    const client = createIntegrationBrokerClientFromEnv();
+    return client.deleteEmployee(emplid);
   }
 }
 

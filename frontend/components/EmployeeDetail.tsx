@@ -1,9 +1,11 @@
 "use client";
 
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+
+import { EmployeeForm, type EmployeeFormValues } from "@/components/EmployeeForm";
 
 const GET_EMPLOYEE = gql`
   query GetEmployee($id: ID!, $asOfDate: String) {
@@ -12,6 +14,9 @@ const GET_EMPLOYEE = gql`
       name
       email
       department
+      position
+      salary
+      managerEmplid
       effectiveDate
       manager {
         emplid
@@ -40,11 +45,20 @@ type EmployeeDetailData = {
     name: string;
     email: string | null;
     department: string | null;
+    position: string | null;
+    salary: number | null;
+    managerEmplid: string | null;
     effectiveDate: string | null;
     manager: { emplid: string; name: string } | null;
     jobHistory: JobRow[];
   } | null;
 };
+
+const DELETE_EMPLOYEE = gql`
+  mutation DeleteEmployee($emplid: ID!) {
+    deleteEmployee(emplid: $emplid)
+  }
+`;
 
 export function EmployeeDetail({ emplid }: { emplid: string }) {
   const router = useRouter();
@@ -52,6 +66,7 @@ export function EmployeeDetail({ emplid }: { emplid: string }) {
   const initialDate =
     searchParams.get("asOfDate") ?? new Date().toISOString().slice(0, 10);
   const [asOfDate, setAsOfDate] = useState(initialDate);
+  const [showEdit, setShowEdit] = useState(false);
 
   const { data, loading, error, refetch } = useQuery<EmployeeDetailData>(
     GET_EMPLOYEE,
@@ -59,6 +74,8 @@ export function EmployeeDetail({ emplid }: { emplid: string }) {
       variables: { id: emplid, asOfDate },
     },
   );
+
+  const [deleteEmployee] = useMutation(DELETE_EMPLOYEE);
 
   function applyDate() {
     const params = new URLSearchParams();
@@ -102,6 +119,37 @@ export function EmployeeDetail({ emplid }: { emplid: string }) {
       <header className="detail-header">
         <h1>{employee.name}</h1>
         <span className="badge">{employee.emplid}</span>
+        <div className="card-actions" style={{ marginLeft: "auto" }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setShowEdit(true)}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            className="btn-danger"
+            onClick={async () => {
+              const confirmed = window.confirm(
+                `Delete ${employee.name} (${employee.emplid})?`,
+              );
+              if (!confirmed) return;
+              try {
+                await deleteEmployee({ variables: { emplid: employee.emplid } });
+                router.push("/");
+              } catch (deleteError) {
+                window.alert(
+                  deleteError instanceof Error
+                    ? deleteError.message
+                    : "Could not delete employee.",
+                );
+              }
+            }}
+          >
+            Delete
+          </button>
+        </div>
       </header>
 
       <dl className="facts">
@@ -152,6 +200,24 @@ export function EmployeeDetail({ emplid }: { emplid: string }) {
           ))}
         </tbody>
       </table>
+
+      {showEdit ? (
+        <EmployeeForm
+          mode="edit"
+          initial={{
+            emplid: employee.emplid,
+            name: employee.name,
+            email: employee.email ?? "",
+            department: employee.department ?? "",
+            position: employee.position ?? "Employee",
+            salary: employee.salary != null ? String(employee.salary) : "",
+            managerEmplid: employee.managerEmplid ?? "",
+            effdt: asOfDate,
+          } satisfies EmployeeFormValues}
+          onClose={() => setShowEdit(false)}
+          onSaved={() => void refetch()}
+        />
+      ) : null}
     </section>
   );
 }

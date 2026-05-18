@@ -1,6 +1,17 @@
 import { mapIntegrationBrokerEmployee } from "./mappers.js";
 import type { EmployeeRecord } from "./types.js";
 
+export type IntegrationBrokerWriteInput = {
+  emplid?: string | null;
+  name: string;
+  email?: string | null;
+  department?: string | null;
+  position?: string | null;
+  salary?: number | null;
+  managerEmplid?: string | null;
+  effdt?: string | null;
+};
+
 type IntegrationBrokerConfig = {
   baseUrl: string;
   username: string;
@@ -14,16 +25,27 @@ type IntegrationBrokerConfig = {
 export class IntegrationBrokerClient {
   constructor(private readonly config: IntegrationBrokerConfig) {}
 
+  private isGoogleAppsScript(): boolean {
+    return this.config.baseUrl.includes("script.google.com");
+  }
+
+  /** Build REST URL (path style) or Apps Script ?path= style. */
   private buildUrl(
     path: string,
     params?: {
       asOfDate?: string | null;
       limit?: number | null;
       offset?: number | null;
+      method?: string;
     },
   ): string {
-    const base = `${this.config.baseUrl.replace(/\/$/, "")}${path}`;
+    const cleanPath = path.replace(/^\//, "");
     const search = new URLSearchParams();
+
+    if (this.isGoogleAppsScript()) {
+      search.set("path", cleanPath);
+    }
+
     if (params?.asOfDate?.trim()) {
       search.set("asOfDate", params.asOfDate.trim());
     }
@@ -33,8 +55,51 @@ export class IntegrationBrokerClient {
     if (params?.offset != null && params.offset >= 0) {
       search.set("offset", String(params.offset));
     }
+    if (params?.method) {
+      search.set("_method", params.method);
+    }
+
+    const base = this.config.baseUrl.replace(/\/$/, "");
+    if (this.isGoogleAppsScript()) {
+      const query = search.toString();
+      return query ? `${base}?${query}` : base;
+    }
+
+    const restBase = `${base}/${cleanPath}`;
     const query = search.toString();
-    return query ? `${base}?${query}` : base;
+    return query ? `${restBase}?${query}` : restBase;
+  }
+
+  private authHeader(): string {
+    return `Basic ${Buffer.from(
+      `${this.config.username}:${this.config.password}`,
+    ).toString("base64")}`;
+  }
+
+  private async request(
+    path: string,
+    init: RequestInit & {
+      params?: {
+        asOfDate?: string | null;
+        limit?: number | null;
+        offset?: number | null;
+        method?: string;
+      };
+    },
+  ): Promise<Response> {
+    const { params, ...fetchInit } = init;
+    const url = this.buildUrl(path, params);
+    console.log(`[Integration Broker] ${fetchInit.method ?? "GET"} ${url}`);
+
+    return fetch(url, {
+      ...fetchInit,
+      headers: {
+        Authorization: this.authHeader(),
+        Accept: "application/json",
+        ...(fetchInit.body ? { "Content-Type": "application/json" } : {}),
+        ...fetchInit.headers,
+      },
+    });
   }
 
   async fetchEmployee(
@@ -42,19 +107,10 @@ export class IntegrationBrokerClient {
     asOfDate?: string | null,
   ): Promise<EmployeeRecord | null> {
     // TODO: replace path with your IB REST resource, e.g. /EMPLOYEE/v1/{emplid}
-    const url = this.buildUrl(`/employee/${encodeURIComponent(emplid)}`, {
-      asOfDate,
-    });
-    const auth = Buffer.from(
-      `${this.config.username}:${this.config.password}`,
-    ).toString("base64");
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Basic ${auth}`,
-        Accept: "application/json",
-      },
-    });
+    const response = await this.request(
+      `/employee/${encodeURIComponent(emplid)}`,
+      { method: "GET", params: { asOfDate } },
+    );
 
     if (response.status === 404) return null;
     if (!response.ok) {
@@ -72,16 +128,9 @@ export class IntegrationBrokerClient {
     limit?: number | null,
     offset?: number | null,
   ): Promise<EmployeeRecord[]> {
-    const url = this.buildUrl("/employees", { asOfDate, limit, offset });
-    const auth = Buffer.from(
-      `${this.config.username}:${this.config.password}`,
-    ).toString("base64");
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Basic ${auth}`,
-        Accept: "application/json",
-      },
+    const response = await this.request("/employees", {
+      method: "GET",
+      params: { asOfDate, limit, offset },
     });
 
     if (!response.ok) {
@@ -103,16 +152,9 @@ export class IntegrationBrokerClient {
   }
 
   async countEmployees(asOfDate?: string | null): Promise<number> {
-    const url = this.buildUrl("/employees/count", { asOfDate });
-    const auth = Buffer.from(
-      `${this.config.username}:${this.config.password}`,
-    ).toString("base64");
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Basic ${auth}`,
-        Accept: "application/json",
-      },
+    const response = await this.request("/employees/count", {
+      method: "GET",
+      params: { asOfDate },
     });
 
     if (!response.ok) {
@@ -128,6 +170,67 @@ export class IntegrationBrokerClient {
     }
 
     return total;
+  }
+
+  async createEmployee(
+    input: IntegrationBrokerWriteInput,
+  ): Promise<EmployeeRecord> {
+    const response = await this.request("/employees", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Integration Broker create failed (${response.status}): ${await response.text()}`,
+      );
+    }
+
+    return mapIntegrationBrokerEmployee(await response.json());
+  }
+
+  async updateEmployee(
+    emplid: string,
+    input: IntegrationBrokerWriteInput,
+  ): Promise<EmployeeRecord> {
+    const path = `/employee/${encodeURIComponent(emplid)}`;
+    const response = this.isGoogleAppsScript()
+      ? await this.request(path, {
+          method: "POST",
+          params: { method: "PUT" },
+          body: JSON.stringify(input),
+        })
+      : await this.request(path, {
+          method: "PUT",
+          body: JSON.stringify(input),
+        });
+
+    if (!response.ok) {
+      throw new Error(
+        `Integration Broker update failed (${response.status}): ${await response.text()}`,
+      );
+    }
+
+    return mapIntegrationBrokerEmployee(await response.json());
+  }
+
+  async deleteEmployee(emplid: string): Promise<boolean> {
+    const path = `/employee/${encodeURIComponent(emplid)}`;
+    const response = this.isGoogleAppsScript()
+      ? await this.request(path, {
+          method: "POST",
+          params: { method: "DELETE" },
+        })
+      : await this.request(path, { method: "DELETE" });
+
+    if (!response.ok) {
+      throw new Error(
+        `Integration Broker delete failed (${response.status}): ${await response.text()}`,
+      );
+    }
+
+    const payload = (await response.json()) as { deleted?: boolean };
+    return payload.deleted ?? true;
   }
 }
 

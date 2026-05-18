@@ -7,6 +7,8 @@ export function jobRowToEmployee(row: JobRow) {
     name: row.name,
     email: row.email,
     department: row.department,
+    position: row.position,
+    salary: row.salary,
     managerEmplid: row.managerEmplid,
   };
 }

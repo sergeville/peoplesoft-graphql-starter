@@ -18,6 +18,17 @@ export function mapIntegrationBrokerEmployee(payload: unknown): EmployeeRecord {
       : row.department
         ? String(row.department)
         : null,
+    position: row.POSITION
+      ? String(row.POSITION)
+      : row.position
+        ? String(row.position)
+        : "Employee",
+    salary:
+      typeof row.SALARY === "number"
+        ? row.SALARY
+        : row.salary
+          ? Number.parseFloat(String(row.salary))
+          : 0,
     managerEmplid: row.MANAGER_ID
       ? String(row.MANAGER_ID)
       : row.managerEmplid

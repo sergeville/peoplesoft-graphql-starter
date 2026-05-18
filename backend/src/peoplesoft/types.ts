@@ -3,6 +3,8 @@ export type EmployeeRecord = {
   name: string;
   email: string | null;
   department: string | null;
+  position: string;
+  salary: number;
   managerEmplid: string | null;
 };
 
