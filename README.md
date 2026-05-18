@@ -15,6 +15,26 @@ Skip once: `SKIP_VERSION_BUMP=1 git commit -m "your message"`
 
 Manual bump: `npm run version:patch`
 
+## Port conflicts? (Docker vs `npm run dev`)
+
+**Do not run both at once** — they fight for the same ports.
+
+| Mode | Command | UI | GraphQL | Mock PS |
+|------|---------|-----|---------|---------|
+| **Docker** | `npm run stack:docker` | http://localhost:3001 | :4000 | :4100 |
+| **Local** | `npm run dev:mock-ps` | http://localhost:3000 | :4000 | :4100 |
+
+If you see `EADDRINUSE` or `address already in use`:
+
+```bash
+npm run stack:stop
+# then start ONE mode only
+```
+
+Paste errors like `^[[200~cd` happen when bracketed paste is on — type commands manually or run `npm run stack:stop` without the `#` comment lines.
+
+---
+
 ## Docker (mock PeopleSoft — no real PS site)
 
 Runs the full stack with a **mock Integration Broker** pretending to be PeopleSoft on your network:

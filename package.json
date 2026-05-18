@@ -13,7 +13,9 @@
     "sync:sheet": "npm run sync:sheet --prefix backend",
     "build": "npm run build --prefix backend && npm run build --prefix frontend",
     "prepare": "node scripts/setup-git-hooks.mjs",
-    "version:patch": "node scripts/bump-patch-version.mjs"
+    "version:patch": "node scripts/bump-patch-version.mjs",
+    "stack:stop": "sh scripts/stop-dev-stack.sh",
+    "stack:docker": "docker compose up --build"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
