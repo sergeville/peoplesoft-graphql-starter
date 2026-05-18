@@ -5,6 +5,38 @@ Next.js UI → Apollo GraphQL (port **4000**) → **mock** PeopleSoft data → s
 **Full-stack course (frontend → backend → PeopleSoft):** [Courses/COURSE.md](./Courses/COURSE.md)  
 **App team vs PeopleSoft team (org boundaries):** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md)
 
+## Versioning
+
+Current version: **0.0.1** (see `package.json`).
+
+After `npm install`, a **pre-commit hook** bumps the **patch** version on every commit (`0.0.1` → `0.0.2` → …) in root, `backend/`, and `frontend/` `package.json` files.
+
+Skip once: `SKIP_VERSION_BUMP=1 git commit -m "your message"`
+
+Manual bump: `npm run version:patch`
+
+## Docker (mock PeopleSoft — no real PS site)
+
+Runs the full stack with a **mock Integration Broker** pretending to be PeopleSoft on your network:
+
+```text
+frontend :3000  →  backend :4000  →  mock-ps :4100  (fake IB REST)
+```
+
+```bash
+docker compose up --build
+```
+
+| URL | Service |
+|-----|---------|
+| http://localhost:3000 | Next.js UI |
+| http://localhost:4000 | GraphQL |
+| http://localhost:4100/employees | Mock PS REST (Basic `demo` / `demo`) |
+
+For your **real** site later, see `docker-compose.real-ps.example.yml` (set `PS_BASE_URL` to Integration Broker — not direct Oracle DB).
+
+**Course module:** [Courses/DOCKER_AND_IB_CONFIGURE.md](./Courses/DOCKER_AND_IB_CONFIGURE.md) · IB comment map in `docker-compose.yml`
+
 ## Quick start
 
 ```bash

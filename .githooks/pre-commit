@@ -1,0 +1,11 @@
+#!/bin/sh
+# Auto-bump patch version (0.0.x) on every commit. Set SKIP_VERSION_BUMP=1 to skip.
+if [ "$SKIP_VERSION_BUMP" = "1" ]; then
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT" || exit 1
+
+node scripts/bump-patch-version.mjs || exit 1
+git add package.json backend/package.json frontend/package.json

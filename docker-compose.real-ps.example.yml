@@ -1,0 +1,34 @@
+# =============================================================================
+# Example: point backend at REAL PeopleSoft Integration Broker (your site)
+#
+#   docker compose -f docker-compose.yml -f docker-compose.real-ps.example.yml up backend frontend
+#
+# Do NOT start mock-ps when using this overlay.
+#
+# -----------------------------------------------------------------------------
+# In PeopleSoft Integration Broker (what your PS team configures — you consume):
+#
+#   Navigation (typical):
+#     PeopleTools → Integration Broker → Integration Setup
+#       → Services          → service definition + REST provider
+#       → Service Operations → GET_EMPLOYEES, GET_EMPLOYEE, …
+#       → Routings          → node, gateway, permission list
+#       → Service Activity  → test / monitor requests
+#
+#   Ask PS team for:
+#     1. Published REST base URL  → PS_BASE_URL below
+#     2. Auth type + credentials  → PS_USERNAME / PS_PASSWORD (or OAuth — custom)
+#     3. Operation list + paths   → must match integrationBrokerClient.ts
+#     4. Sample JSON (EMPLID, NAME, …) → mappers.ts
+#     5. asOfDate + pagination rules
+#     6. How row-level security is applied (operator id header, SSO, etc.)
+# =============================================================================
+
+services:
+  backend:
+    depends_on: []
+    environment:
+      PEOPLESOFT_DATA_SOURCE: integration-broker
+      PS_BASE_URL: https://your-peoplesoft-host.example.com/psc/ps/.../your-rest-service
+      PS_USERNAME: ${PS_USERNAME}
+      PS_PASSWORD: ${PS_PASSWORD}

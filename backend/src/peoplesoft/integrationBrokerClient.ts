@@ -19,8 +19,16 @@ type IntegrationBrokerConfig = {
 };
 
 /**
- * PeopleSoft Integration Broker REST client.
- * Implement `fetchEmployeeFromBroker` against your delivered REST service path.
+ * PeopleSoft Integration Broker REST client (HTTP consumer — Side 1 of the app).
+ *
+ * Your PS team configures IB in PeopleTools (Side 2). You only need their published:
+ *   - PS_BASE_URL  (REST base, e.g. .../s/WEBLIB_EMP_REST.v1)
+ *   - Operations: GET /employees, GET /employees/count, GET|PUT|DELETE /employee/{EMPLID}, POST /employees
+ *   - Query: asOfDate, limit, offset (or page / pageSize)
+ *   - Auth: Basic (this client) or extend for OAuth
+ *   - JSON field names → mappers.ts (EMPLID, NAME, …)
+ *
+ * Local mock IB: PS_BASE_URL=http://localhost:4100 (see mockIntegrationBroker/server.ts).
  */
 export class IntegrationBrokerClient {
   constructor(private readonly config: IntegrationBrokerConfig) {}

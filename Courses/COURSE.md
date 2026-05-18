@@ -13,7 +13,7 @@
 1. Clone/open the repo and complete **Module 0** setup.
 2. Do each module in order; **Labs** are hands-on (required).
 3. Use **Checkpoint questions** to verify understanding before moving on.
-4. Deep dives live in this `Courses/` folder — especially [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md).
+4. Deep dives live in this `Courses/` folder — especially [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md), [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md).
 
 | Module | Topic | ~Time |
 |--------|--------|-------|
@@ -25,6 +25,7 @@
 | 5 | Resolvers & EmployeeService | 1.5 h |
 | 6 | PeopleSoft data layer (mock, CSV, store) | 2 h |
 | 7 | Mock Integration Broker REST | 1.5 h |
+| 7b | Docker mock stack & IB configure map | 1 h |
 | 8 | Frontend: Next.js + Apollo Client | 2 h |
 | 9 | CRUD: mutations & forms | 1.5 h |
 | 10 | Pagination & effective dating | 1 h |
@@ -499,6 +500,56 @@ Read `mockIntegrationBroker/server.ts` and `payloads.ts`.
 
 ---
 
+## Module 7b — Docker mock stack & Integration Broker configure map
+
+**Read:** [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) (full labs and PS PeopleTools mapping).
+
+### Goals
+
+- Run **mock-ps + backend + frontend** with `docker compose up --build`.
+- Relate Docker env vars (`PS_BASE_URL`, `PS_USERNAME`) to what the **PeopleSoft team** sets in Integration Broker.
+- Know when to **restart** containers after code/env changes.
+
+### Quick start
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:3000 — same app as `npm run dev:mock-ps`, but all three services run in containers.
+
+### What you would see in real PeopleSoft (summary)
+
+| PeopleTools / IB | This repo (mock or .env) |
+|------------------|---------------------------|
+| Service definition (REST) | `mock-ps` on :4100 |
+| Service operations (GET /employees, …) | `mockIntegrationBroker/server.ts` routes |
+| Published external URL | `PS_BASE_URL` |
+| Service user + password | `PS_USERNAME` / `PS_PASSWORD` |
+| JSON field names (EMPLID, …) | `mappers.ts` |
+
+Detailed tables and PeopleTools navigation: **DOCKER_AND_IB_CONFIGURE.md** and comment block at top of **`docker-compose.yml`**.
+
+### Lab 7b.1
+
+1. `docker compose up --build` — confirm three containers healthy.
+2. `curl -u demo:demo http://localhost:4100/employees?limit=2`
+3. Open UI list — confirm employees load through GraphQL (not direct to :4100 from browser).
+
+### Lab 7b.2 — Read configure comments
+
+1. Open `docker-compose.yml` — read the Integration Broker configure comment block.
+2. Open `backend/.env.example` — match each variable to an IB concept.
+3. Answer checkpoint questions at end of DOCKER_AND_IB_CONFIGURE.md.
+
+### Checkpoint
+
+- Why are three Docker services required for the mock stack?
+- Where is IB actually configured — in compose or in PeopleTools?
+- What URL goes in `PS_BASE_URL` for production?
+
+---
+
 ## Module 8 — Frontend: Next.js + Apollo Client
 
 ### App Router structure
@@ -652,7 +703,8 @@ Manager SSO → Next.js session → GraphQL BFF
 
 ### Read thoroughly
 
-[PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md)
+- [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) — Part C–F (operation map, real PS cutover)
+- [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md)
 
 ### Concepts to internalize
 
@@ -746,10 +798,14 @@ BACKEND
 
 Courses/
   COURSE.md                    This file
+  DOCKER_AND_IB_CONFIGURE.md   Docker + IB PeopleTools map
   TEAM_BOUNDARIES.md
   CODE_PATH_GRAPHQL_TO_PS.md
   GOOGLE_SHEETS.md
   PEOPLESOFT_IB_ROW_SECURITY.md
+
+docker-compose.yml             IB configure comments + mock stack
+docker-compose.real-ps.example.yml
 
 ROOT
   package.json                 dev, dev:mock-ps, export:employees
@@ -789,9 +845,10 @@ npm run typecheck        # Backend tsc (in backend/)
 
 1. [README.md](../README.md)
 2. [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md)
-3. [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md)
-4. [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md)
-5. [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md)
+3. [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md)
+4. [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md)
+5. [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md)
+6. [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md)
 6. Apollo GraphQL docs: https://www.apollographql.com/docs
 7. Next.js App Router: https://nextjs.org/docs
 

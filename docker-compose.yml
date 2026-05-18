@@ -1,19 +1,124 @@
-version: "3.9"
+# =============================================================================
+# Docker: full stack with MOCK PeopleSoft (no real PS site / no Oracle DB)
+#
+#   docker compose up --build
+#
+#   UI:      http://localhost:3000
+#   GraphQL: http://localhost:4000
+#   Mock IB: http://localhost:4100/employees  (Basic demo / demo)
+# =============================================================================
+#
+# -----------------------------------------------------------------------------
+# What you would see in REAL PeopleSoft — Integration Broker configuration
+# (PeopleTools → Integration Broker). Our mock-ps service imitates this contract.
+# -----------------------------------------------------------------------------
+#
+# 1) Service definition (Integration Broker → Services)
+#    - Service name: e.g. EMPLOYEE_REST_API (your PS team names this)
+#    - Description: REST API for employee directory / HR data
+#    - Service type: REST (not SOAP for this starter)
+#
+# 2) Service operations (per resource — your PS team publishes these)
+#    Typical operation names and HTTP verbs (must match integrationBrokerClient.ts):
+#
+#    | Operation (IB name)     | Method | REST path (resource)     | Mock URL (:4100)        |
+#    |-------------------------|--------|--------------------------|-------------------------|
+#    | GET_EMPLOYEES           | GET    | /employees               | GET /employees          |
+#    | GET_EMPLOYEE_COUNT      | GET    | /employees/count         | GET /employees/count    |
+#    | GET_EMPLOYEE            | GET    | /employee/{EMPLID}       | GET /employee/100001    |
+#    | CREATE_EMPLOYEE         | POST   | /employees               | POST /employees         |
+#    | UPDATE_EMPLOYEE         | PUT    | /employee/{EMPLID}       | PUT /employee/100001    |
+#    | DELETE_EMPLOYEE         | DELETE | /employee/{EMPLID}       | DELETE /employee/100001 |
+#
+#    Query parameters (often configured in handler / PeopleCode or CI):
+#      - asOfDate   → effective-dated read (PS_JOB MAX(EFFDT) <= asOfDate)
+#      - limit, offset  OR  page, pageSize  → list pagination
+#
+# 3) Handler / routing (where PS logic runs)
+#    - Handler type: PeopleCode (REST handler) or Component Interface adapter
+#    - Routing: Integration Gateway node, permission list, SSL
+#    - Row security: enforced in PS (operator sees only allowed EMPLIDs)
+#      → NOT in GraphQL; BFF passes user identity to IB per PS team design
+#
+# 4) Published external URL (what you put in PS_BASE_URL on backend)
+#    Pattern (varies by site):
+#      https://<your-host>/psc/ps/<NODE>/<PORTAL>/s/<REST_WEBLIB>.<Operation>
+#    Or a shorter REST base your team documents, e.g.:
+#      https://hr.company.com/psc/ps/EMPLOYEE/HRMS/s/WEBLIB_EMP_REST.v1
+#    Docker mock equivalent:
+#      PS_BASE_URL=http://mock-ps:4100   (paths above are appended by the client)
+#
+# 5) Security (Integration Broker → Service security / Gateway)
+#    - Authentication: HTTP Basic, OAuth 2.0, or SSO token (site-specific)
+#    - Service account: PS_USERNAME / PS_PASSWORD in backend .env (never in browser)
+#    - Mock: MOCK_IB_USERNAME=demo, MOCK_IB_PASSWORD=demo
+#
+# 6) Message format
+#    - Request/Response: JSON (Content-Type: application/json)
+#    - Field names in JSON often PS-style: EMPLID, NAME, EMAIL_ADDR, DEPTID, EFFDT
+#      → mapped in backend/src/peoplesoft/mappers.ts
+#
+# 7) What you do NOT configure in IB for this app
+#    - GraphQL (that is only on your BFF :4000, internal to your team)
+#    - Direct Oracle connection from Docker (avoid; use IB REST only)
+#
+# For real site: remove mock-ps service; set backend PS_BASE_URL to PS team's URL.
+# See docker-compose.real-ps.example.yml
+# =============================================================================
 
 services:
+  # Side 2 — stands in for PeopleSoft Integration Broker REST on your site
+  mock-ps:
+    build: ./backend
+    command: ["npx", "tsx", "src/mock-ib-server.ts"]
+    ports:
+      - "4100:4100"
+    environment:
+      MOCK_IB_PORT: 4100
+      # IB Security: Basic auth user (compare to Service User in PS IB)
+      MOCK_IB_USERNAME: demo
+      MOCK_IB_PASSWORD: demo
+      MOCK_DATA_SOURCE: auto
+      MOCK_EMPLOYEE_COUNT: 1000
+      MOCK_EMPLOYEE_CSV_PATH: ./data/employees.csv
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://demo:demo@127.0.0.1:4100/employees',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 45s
+
+  # Side 1 — your GraphQL BFF (consumer of IB REST)
   backend:
     build: ./backend
     ports:
       - "4000:4000"
+    depends_on:
+      mock-ps:
+        condition: service_healthy
     environment:
       PORT: 4000
-      PEOPLESOFT_DATA_SOURCE: mock
+      PEOPLESOFT_DATA_SOURCE: integration-broker
+      # PS_BASE_URL = "External system URL" / REST base from IB service catalog
+      PS_BASE_URL: http://mock-ps:4100
+      PS_USERNAME: demo
+      PS_PASSWORD: demo
+      MOCK_DATA_SOURCE: auto
+      MOCK_EMPLOYEE_COUNT: 1000
+      MOCK_EMPLOYEE_CSV_PATH: ./data/employees.csv
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        GRAPHQL_INTERNAL_URL: http://backend:4000/
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=production
     depends_on:
       - backend
+    environment:
+      NODE_ENV: production

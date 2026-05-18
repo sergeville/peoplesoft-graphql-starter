@@ -8,6 +8,7 @@
 
 | Doc | Topic |
 |-----|--------|
+| [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) | Docker mock stack + IB PeopleTools map |
 | [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) | App team vs PeopleSoft team |
 | [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) | Trace Save → `fetch()` |
 | [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md) | Edit mock data in Sheets |
