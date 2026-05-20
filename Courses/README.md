@@ -34,7 +34,7 @@ Hands-on curriculum: **browser → GraphQL BFF → PeopleSoft (mock CSV, mock IB
 | 7 | Mock Integration Broker | `dev:mock-ps`, `mock-ib` | [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) |
 | 7b | Docker mock stack | `stack:docker`, `stack:stop` | [DOCKER_AND_IB](./DOCKER_AND_IB_CONFIGURE.md) |
 | 8 | Frontend (Next.js + Apollo) | `dev:frontend`, `dev` | — |
-| 9 | CRUD mutations & forms | `dev` (mock) or `dev:mock-ps` | [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) |
+| 9 | CRUD mutations & forms (`delete` = terminate) | `dev` (mock) or `dev:mock-ps` | [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) |
 | 10 | Pagination & effective dating | `dev` | — |
 | 11 | Real PS & row security | (config + design) | [PEOPLESOFT_IB_ROW_SECURITY](./PEOPLESOFT_IB_ROW_SECURITY.md) |
 | 12 | Capstone | `build`, `stack:docker` | — |

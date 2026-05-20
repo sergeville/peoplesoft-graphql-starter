@@ -356,15 +356,16 @@ What our **mock** exposes on port 4100 is what you should ask the PS team to doc
 | `GET /employees/count` | GET_EMPLOYEE_COUNT | GET | Total for pagination |
 | `GET /employee/{EMPLID}` | GET_EMPLOYEE | GET | One row; `?asOfDate=` |
 | `POST /employees` | CREATE_EMPLOYEE | POST | JSON body |
-| `PUT /employee/{EMPLID}` | UPDATE_EMPLOYEE | PUT | JSON body |
-| `DELETE /employee/{EMPLID}` | DELETE_EMPLOYEE | DELETE | Site may use eff-dated delete instead |
+| `PUT /employee/{EMPLID}` | UPDATE_EMPLOYEE | PUT | JSON body (updates) |
+| `PUT /employee/{EMPLID}` | TERMINATE_EMPLOYEE | **PUT** | **Production pattern for “delete”** — BFF [`deleteEmployee`](../backend/src/peoplesoft/integrationBrokerClient.ts) sends `{ effdt, hrStatus: "I" }` / `HR_STATUS: "I"`; eff-dated inactive row, history kept |
+| `DELETE /employee/{EMPLID}` | (mock alias) | DELETE | **Mock IB only** — same terminate semantics as PUT; real sites often have no literal DELETE |
 
 **Query parameters** (agree with PS team):
 
 - `asOfDate` — effective-dated snapshot (`MAX(EFFDT) <= asOfDate`)
 - `limit` / `offset` or `page` / `pageSize` — pagination
 
-**JSON fields** (examples in mock): `EMPLID`, `NAME`, `EMAIL_ADDR`, `DEPTID`, `EFFDT` → **inbound** mapping in `backend/src/peoplesoft/mappers.ts`. Mock GET rows are built in [`mockIntegrationBroker/payloads.ts`](../backend/src/peoplesoft/mockIntegrationBroker/payloads.ts) (`jobRowToPsBrokerRow`). Writes from the BFF still use camelCase until an outbound mapper is added — see [CODE_PATH § Two-way mapping](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping).
+**JSON fields** (examples in mock): `EMPLID`, `NAME`, `EMAIL_ADDR`, `DEPTID`, `EFFDT`, `HR_STATUS` → **inbound** mapping in `backend/src/peoplesoft/mappers.ts`. Mock GET rows are built in [`mockIntegrationBroker/payloads.ts`](../backend/src/peoplesoft/mockIntegrationBroker/payloads.ts) (`jobRowToPsBrokerRow`). Terminate (“delete”) uses **PUT** + inactive `HR_STATUS`, not row removal — [CODE_PATH § PS terminate vs delete](CODE_PATH_GRAPHQL_TO_PS.md#ps-terminate-vs-delete). Writes from the BFF still use camelCase until an outbound mapper is added — see [CODE_PATH § Two-way mapping](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping).
 
 ---
 

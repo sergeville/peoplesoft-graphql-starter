@@ -1,6 +1,10 @@
 import type { EmployeeRecord } from "./types.js";
 
-/** Map Integration Broker JSON → internal employee shape. Adjust when wiring real PS REST. */
+/**
+ * Why: Integration Broker returns PS uppercase field names; the BFF maps once to the stable
+ * GraphQL Employee shape so resolvers never branch on IB vs mock casing.
+ * Course: Module 7 · CODE_PATH § two-way-mapping
+ */
 export function mapIntegrationBrokerEmployee(payload: unknown): EmployeeRecord {
   const row = payload as Record<string, unknown>;
   return {

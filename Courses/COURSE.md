@@ -311,6 +311,8 @@ type Mutation {
 }
 ```
 
+`deleteEmployee` **terminates** (eff-dated inactive row) — it does not remove job history. See [Module 9](#module-9--crud-mutations--forms) and [CODE_PATH § PS terminate vs delete](CODE_PATH_GRAPHQL_TO_PS.md#ps-terminate-vs-delete).
+
 - **Query** = read
 - **Mutation** = write
 - **Type** = shape of data (`Employee`, `JobRecord`)
@@ -472,7 +474,7 @@ employees: async (_, args, ctx) => {
 
 ### Lab 5.2 — Draw a sequence diagram
 
-On paper, trace: `EmployeeList` → `useQuery` → resolver → `listEmployees` → `pickEffectiveRow` → return JSON.
+On paper, trace: `EmployeeList` → `useQuery` → resolver → `listEmployees` → `pickActiveEffectiveRow` → return JSON.
 
 ### Checkpoint
 
@@ -494,13 +496,13 @@ Also: [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md) (same commands). Index: [SCRIPT_COU
 
 ### Mental model: PS_JOB-style rows
 
-One **employee** (`emplid`) can have **many rows** over time (`effdt`, position, salary).  
-**Effective dating** picks the row valid on `asOfDate`.
+One **employee** (`emplid`) can have **many rows** over time (`effdt`, `hr_status`, position, salary).  
+**Effective dating** picks the row valid on `asOfDate`; **active status** (`hr_status` `A` vs `I`/`T`) controls list/get visibility.
 
 | File | Role |
 |------|------|
-| `types.ts` | `JobRow`, `EmployeeRecord` |
-| `effectiveDating.ts` | `pickEffectiveRow` |
+| `types.ts` | `JobRow`, `EmployeeRecord` (`hrStatus`) |
+| `effectiveDating.ts` | `pickEffectiveRow` (as-of), `pickActiveEffectiveRow` (as-of + active `hr_status`) |
 | `jobHistory.ts` | `jobRowToEmployee`, `buildJobHistory` |
 | `generateMockJobRows.ts` | 1000 synthetic employees |
 | `csvEmployees.ts` | Parse/write CSV |
@@ -552,7 +554,7 @@ Three processes: **mock-ps :4100**, **backend :4000**, **frontend :3000**.
 
 ### PS-shaped JSON
 
-Mock returns `EMPLID`, `EMAIL_ADDR`, etc.  
+Mock returns `EMPLID`, `EMAIL_ADDR`, `EFFDT`, `HR_STATUS`, etc. ([`payloads.ts`](../backend/src/peoplesoft/mockIntegrationBroker/payloads.ts) — `jobRowToPsBrokerRow`).  
 `mappers.ts` converts → internal `EmployeeRecord` (**inbound only** today).
 
 **Two-way mapping (design):** Outbound POST/PUT still send camelCase JSON; production IB usually needs PS field names on writes. Full field table, limitations (`manager`, `jobHistory`, `effectiveDate`), and implementation steps — [CODE_PATH § Two-way mapping](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping).
@@ -748,9 +750,11 @@ Index: [SCRIPT_COURSE_LINKS § Module 9](./SCRIPT_COURSE_LINKS.md#by-course-modu
 |----------|-------------|---------------------------|
 | `createEmployee` | `createEmployeeInStore` → CSV | `integrationBrokerClient.createEmployee` → HTTP POST |
 | `updateEmployee` | `updateEmployeeInStore` → CSV | `integrationBrokerClient.updateEmployee` → HTTP PUT |
-| `deleteEmployee` | `deleteEmployeeFromStore` → CSV | `integrationBrokerClient.deleteEmployee` → HTTP DELETE |
+| `deleteEmployee` | `terminateEmployeeInStore` → new CSV row (`hr_status=I`) | `integrationBrokerClient.deleteEmployee` → **PUT** terminate (`effdt`, `hrStatus`) |
 
 Side 1 (resolver) is the same for both; Side 2 is chosen in `employeeService.ts`.
+
+> **PeopleSoft:** No hard delete — eff-dated terminate. The app **implements this** (row stays in CSV; UI list hides inactive). See [CODE_PATH § PS terminate vs delete](CODE_PATH_GRAPHQL_TO_PS.md#ps-terminate-vs-delete).
 
 ### Frontend flow
 
@@ -766,7 +770,7 @@ EmployeeList
 
 1. Add employee via UI; verify new row in `employees.csv`.
 2. Edit department; verify CSV.
-3. Delete; verify removed from CSV and UI after refetch.
+3. Delete; verify employee disappears from UI but a new row with `hr_status=I` exists in `employees.csv` (eff-dated terminate).
 
 ### Lab 9.2 — Mutation in Sandbox
 
@@ -810,7 +814,7 @@ Index: [SCRIPT_COURSE_LINKS § Module 10](./SCRIPT_COURSE_LINKS.md#by-course-mod
 ### Effective dating
 
 - Query arg: `asOfDate: "2024-06-01"`
-- Backend: `pickEffectiveRow(rows, asOfDate)`
+- Backend: `pickEffectiveRow` (as-of snapshot); list/count use `pickActiveEffectiveRow` (as-of + active `hr_status`)
 - UI: date bar on detail page
 
 ### Lab 10.1
@@ -868,7 +872,7 @@ Manager SSO → Next.js session → GraphQL BFF
 | Auth | None | SSO + per-user PS token |
 | Row security | You edit CSV | PS enforces by operator |
 | CRUD | CSV file | IB → Component Interface |
-| Delete | Remove CSV rows | Effective-dated correction |
+| Delete | Eff-dated terminate (`hr_status=I` in CSV) | Same — `EFFDT` + `HR_STATUS`; history kept |
 
 ### Lab 11.1 — Design doc (written)
 
@@ -1048,7 +1052,8 @@ ROOT package.json              all npm run commands (see SCRIPT_COURSE_LINKS.md)
 | `fetch failed` on UI | `integration-broker` but nothing on :4100 | `PEOPLESOFT_DATA_SOURCE=mock` or [`npm run dev:mock-ps`](../package.json) → [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts) |
 | `EADDRINUSE` on 3000/4000/4100/8000 | Docker + local both running | [`npm run stack:stop`](../package.json) → [`scripts/stop-dev-stack.sh`](../scripts/stop-dev-stack.sh) |
 | `EADDRINUSE :4000` | Old backend process | `kill $(lsof -t -iTCP:4000 -sTCP:LISTEN)` or [`npm run stack:stop`](../package.json) |
-| Empty list | Bad CSV / empty parse | Check `employees.csv` headers |
+| Empty list | Bad CSV / empty parse | Check `employees.csv` headers (include `hr_status` or re-export) |
+| Delete “did nothing” in CSV | Row count unchanged by design | Expect **new** row with `hr_status=I`; list hides inactive — [Module 9](#module-9--crud-mutations--forms) |
 | Mutations fail | `integration-broker` but nothing on :4100, or wrong `PS_BASE_URL` | [`npm run dev:mock-ps`](../package.json) for local IB, or `PEOPLESOFT_DATA_SOURCE=mock` for CSV-only |
 | Jane title unchanged | Wrong `asOfDate` | Try 2024-06-01 vs 2026-06-01 |
 | Sheet sync fails | Missing URL | Set `GOOGLE_SHEET_CSV_URL` in `.env`; run [`npm run sync:sheet`](../package.json) → [`sync-employees-from-sheet.ts`](../backend/scripts/sync-employees-from-sheet.ts) |

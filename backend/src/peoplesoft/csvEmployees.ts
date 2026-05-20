@@ -4,6 +4,7 @@ export const EMPLOYEE_CSV_HEADERS = [
   "emplid",
   "effdt",
   "effseq",
+  "hr_status",
   "name",
   "email",
   "department",
@@ -53,18 +54,27 @@ function cellsToJobRow(cells: string[], header: string[]): JobRow | null {
   if (!emplid || !effdt || !name) return null;
 
   const effseqRaw = get("effseq", 2);
-  const salaryRaw = get("salary", 7);
-  const email = get("email", 4);
-  const manager = get("manager_emplid", 8) || get("manageremplid", 8);
+  const hasHrStatus =
+    header.length > 0 &&
+    (header.includes("hr_status") || header.includes("hrstatus"));
+  const hrStatusRaw = hasHrStatus
+    ? get("hr_status", 3) || get("hrstatus", 3)
+    : "";
+  const salaryRaw = get("salary", hasHrStatus ? 8 : 7);
+  const email = get("email", hasHrStatus ? 5 : 4);
+  const manager =
+    get("manager_emplid", hasHrStatus ? 9 : 8) ||
+    get("manageremplid", hasHrStatus ? 9 : 8);
 
   return {
     emplid,
     effdt,
     effseq: effseqRaw ? Number.parseInt(effseqRaw, 10) || 0 : 0,
+    hrStatus: hrStatusRaw ? hrStatusRaw.toUpperCase() : "A",
     name,
     email: email || null,
-    department: get("department", 5) || null,
-    position: get("position", 6) || "Employee",
+    department: get("department", 6) || null,
+    position: get("position", 7) || "Employee",
     salary: salaryRaw ? Number.parseFloat(salaryRaw) || 0 : 0,
     managerEmplid: manager || null,
   };
@@ -105,6 +115,7 @@ export function jobRowsToCsv(rows: JobRow[]): string {
       csvCell(row.emplid),
       csvCell(row.effdt),
       String(row.effseq),
+      csvCell(row.hrStatus ?? "A"),
       csvCell(row.name),
       csvCell(row.email ?? ""),
       csvCell(row.department ?? ""),

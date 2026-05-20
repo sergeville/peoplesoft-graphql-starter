@@ -104,8 +104,8 @@ In many organizations **your app team** owns Side 1; a **PeopleSoft team** owns 
 - **`PEOPLESOFT_DATA_SOURCE=mock`** — Side 2 is local CSV/memory (no PS team, no HTTP).
 - **`PEOPLESOFT_DATA_SOURCE=integration-broker`** — Side 2 is `integrationBrokerClient.ts` → `PS_BASE_URL` (real PS, mock IB on :4100, or [Google Sheet via Apps Script](./Courses/GOOGLE_SHEET_AS_MOCK_PS.md)).
 
-**Study the PS boundary in:** `backend/src/peoplesoft/integrationBrokerClient.ts`  
-**Full write-up:** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md) · [Courses/CODE_PATH_GRAPHQL_TO_PS.md](./Courses/CODE_PATH_GRAPHQL_TO_PS.md)
+**Study the PS boundary in:** `backend/src/peoplesoft/integrationBrokerClient.ts` (JSDoc explains terminate-on-delete)  
+**Full write-up:** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md) · [Courses/CODE_PATH_GRAPHQL_TO_PS.md](./Courses/CODE_PATH_GRAPHQL_TO_PS.md) · [§ PS terminate vs delete](./Courses/CODE_PATH_GRAPHQL_TO_PS.md#ps-terminate-vs-delete)
 
 **PeopleSoft JSON mapping:** Inbound IB responses are mapped in `mappers.ts` (`EMPLID` → `emplid`, etc.). GraphQL types align 1:1 with `EmployeeRecord` (no separate GraphQL mapper). Outbound POST/PUT still send camelCase bodies until a reverse mapper is wired — see [Courses/CODE_PATH § Two-way mapping](./Courses/CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping).
 
@@ -113,7 +113,7 @@ In many organizations **your app team** owns Side 1; a **PeopleSoft team** owns 
 
 1. `npm run export:employees` → creates `backend/data/employees.csv`
 2. Import that CSV into [Google Sheets](https://sheets.google.com)
-3. Add / edit / delete rows (see [Courses/GOOGLE_SHEETS.md](./Courses/GOOGLE_SHEETS.md) for column headers)
+3. Add / edit rows in the sheet (see [Courses/GOOGLE_SHEETS.md](./Courses/GOOGLE_SHEETS.md) for headers including `hr_status`; UI **Delete** terminates via a new `hr_status=I` row, not row removal)
 4. Download CSV back **or** `npm run sync:sheet` with a published Sheet URL
 5. Restart the backend — data loads into GraphQL objects automatically
 

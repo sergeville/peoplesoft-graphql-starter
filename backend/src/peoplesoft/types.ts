@@ -13,6 +13,8 @@ export type JobRow = {
   emplid: string;
   effdt: string;
   effseq: number;
+  /** PeopleSoft-style HR_STATUS: A = active, I/T = inactive/terminated */
+  hrStatus: string;
   name: string;
   email: string | null;
   department: string | null;

@@ -33,7 +33,7 @@
 #    | GET_EMPLOYEE            | GET    | /employee/{EMPLID}       | GET /employee/100001    |
 #    | CREATE_EMPLOYEE         | POST   | /employees               | POST /employees         |
 #    | UPDATE_EMPLOYEE         | PUT    | /employee/{EMPLID}       | PUT /employee/100001    |
-#    | DELETE_EMPLOYEE         | DELETE | /employee/{EMPLID}       | DELETE /employee/100001 |
+#    | TERMINATE_EMPLOYEE      | PUT    | /employee/{EMPLID}       | PUT body hrStatus=I (BFF deleteEmployee); mock DELETE alias |
 #
 #    Query parameters (often configured in handler / PeopleCode or CI):
 #      - asOfDate   → effective-dated read (PS_JOB MAX(EFFDT) <= asOfDate)

@@ -1,6 +1,6 @@
 {
   "name": "peoplesoft-graphql-frontend",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
   "courseScriptIndex": "Courses/SCRIPT_COURSE_LINKS.md",
   "scripts": {

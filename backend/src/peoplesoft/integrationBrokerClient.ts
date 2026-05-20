@@ -1,3 +1,4 @@
+import { todayIsoDate } from "./effectiveDating.js";
 import { mapIntegrationBrokerEmployee } from "./mappers.js";
 import type { EmployeeRecord } from "./types.js";
 
@@ -10,6 +11,7 @@ export type IntegrationBrokerWriteInput = {
   salary?: number | null;
   managerEmplid?: string | null;
   effdt?: string | null;
+  hrStatus?: string | null;
 };
 
 type IntegrationBrokerConfig = {
@@ -33,11 +35,16 @@ type IntegrationBrokerConfig = {
 export class IntegrationBrokerClient {
   constructor(private readonly config: IntegrationBrokerConfig) {}
 
+  /** Why: Apps Script cannot host true REST paths; detect once so URL and verb routing stay in one place. */
   private isGoogleAppsScript(): boolean {
     return this.config.baseUrl.includes("script.google.com");
   }
 
-  /** Build REST URL (path style) or Apps Script ?path= style. */
+  /**
+   * Why: Centralize path, asOfDate, pagination, and Apps Script ?path= quirks so every IB
+   * operation hits the same URL contract the PS team published.
+   * Course: Module 7
+   */
   private buildUrl(
     path: string,
     params?: {
@@ -78,12 +85,18 @@ export class IntegrationBrokerClient {
     return query ? `${restBase}?${query}` : restBase;
   }
 
+  /** Why: PS IB expects Basic auth on every call; one helper keeps credentials out of each method. */
   private authHeader(): string {
     return `Basic ${Buffer.from(
       `${this.config.username}:${this.config.password}`,
     ).toString("base64")}`;
   }
 
+  /**
+   * Why: Single fetch wrapper applies auth, JSON headers, and logging so Mode B errors and
+   * retries behave consistently without duplicating fetch boilerplate per operation.
+   * Course: Module 7
+   */
   private async request(
     path: string,
     init: RequestInit & {
@@ -110,6 +123,11 @@ export class IntegrationBrokerClient {
     });
   }
 
+  /**
+   * Why: Mode B loads one employee from live PS REST instead of the mock index, with asOfDate
+   * passed through so historical reads match PeopleSoft semantics.
+   * Course: Module 7 · Mode B
+   */
   async fetchEmployee(
     emplid: string,
     asOfDate?: string | null,
@@ -131,6 +149,11 @@ export class IntegrationBrokerClient {
     return mapIntegrationBrokerEmployee(payload);
   }
 
+  /**
+   * Why: Employee list in production comes from IB pagination, not CSV; maps each row so
+   * GraphQL list shape stays identical to Mode A.
+   * Course: Module 7 · Mode B
+   */
   async fetchEmployees(
     asOfDate?: string | null,
     limit?: number | null,
@@ -159,6 +182,11 @@ export class IntegrationBrokerClient {
     return rows.map(mapIntegrationBrokerEmployee);
   }
 
+  /**
+   * Why: UI pagination needs total active count from PS without fetching every row — IB exposes
+   * a dedicated count endpoint the BFF proxies unchanged.
+   * Course: Module 7 · Mode B
+   */
   async countEmployees(asOfDate?: string | null): Promise<number> {
     const response = await this.request("/employees/count", {
       method: "GET",
@@ -180,6 +208,11 @@ export class IntegrationBrokerClient {
     return total;
   }
 
+  /**
+   * Why: Creates in Mode B must hit PS via POST so hire data lands in PeopleSoft, not the
+   * in-memory mock store — same GraphQL mutation, different persistence boundary.
+   * Course: Module 7/9 · Mode B
+   */
   async createEmployee(
     input: IntegrationBrokerWriteInput,
   ): Promise<EmployeeRecord> {
@@ -197,6 +230,11 @@ export class IntegrationBrokerClient {
     return mapIntegrationBrokerEmployee(await response.json());
   }
 
+  /**
+   * Why: Field updates in production are PS PUT operations; Apps Script may need POST+_method
+   * but the BFF hides that so EmployeeService stays one code path.
+   * Course: Module 7/9 · Mode B
+   */
   async updateEmployee(
     emplid: string,
     input: IntegrationBrokerWriteInput,
@@ -222,26 +260,45 @@ export class IntegrationBrokerClient {
     return mapIntegrationBrokerEmployee(await response.json());
   }
 
+  /**
+   * Why: GraphQL deleteEmployee terminates in PS via eff-dated inactive status, not HTTP
+   * DELETE of the row — mirrors mock store and keeps audit history in PeopleSoft.
+   * Course: Module 9 · CODE_PATH § ps-terminate-vs-delete
+   */
   async deleteEmployee(emplid: string): Promise<boolean> {
     const path = `/employee/${encodeURIComponent(emplid)}`;
+    const body = JSON.stringify({
+      effdt: todayIsoDate(),
+      hrStatus: "I",
+      HR_STATUS: "I",
+    });
     const response = this.isGoogleAppsScript()
       ? await this.request(path, {
           method: "POST",
-          params: { method: "DELETE" },
+          params: { method: "PUT" },
+          body,
         })
-      : await this.request(path, { method: "DELETE" });
+      : await this.request(path, { method: "PUT", body });
 
     if (!response.ok) {
       throw new Error(
-        `Integration Broker delete failed (${response.status}): ${await response.text()}`,
+        `Integration Broker terminate failed (${response.status}): ${await response.text()}`,
       );
     }
 
-    const payload = (await response.json()) as { deleted?: boolean };
-    return payload.deleted ?? true;
+    const payload = (await response.json()) as {
+      deleted?: boolean;
+      terminated?: boolean;
+    };
+    return payload.deleted ?? payload.terminated ?? true;
   }
 }
 
+/**
+ * Why: Mode B wires the IB client from env at startup so missing PS credentials fail fast
+ * instead of silently falling back to mock data in production-shaped configs.
+ * Course: Module 7 · Mode B
+ */
 export function createIntegrationBrokerClientFromEnv(): IntegrationBrokerClient {
   const baseUrl = process.env.PS_BASE_URL;
   const username = process.env.PS_USERNAME;

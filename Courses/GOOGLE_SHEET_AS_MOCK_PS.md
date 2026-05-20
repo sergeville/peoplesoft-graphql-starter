@@ -6,7 +6,8 @@ Your sheet:
 https://docs.google.com/spreadsheets/d/1v8or00pEg1dEQm04QurJSfiWAqoiP_qvXvVa0yupixM/edit?gid=164390836
 
 GraphQL still calls `integrationBrokerClient.ts` → `fetch(PS_BASE_URL + "/employees")`.  
-The Apps Script **is** the mock PS server and **updates the sheet** on POST/PUT/DELETE.
+The Apps Script **is** the mock PS server and **updates the sheet** on POST/PUT/DELETE.  
+For **PeopleSoft-style terminate** (eff-dated `hr_status=I`, history kept), use **Node mock IB** ([`npm run dev:mock-ps`](../package.json)) — the BFF sends **PUT** terminate; this script is a simpler stand-in (DELETE may remove sheet rows).
 
 ---
 
@@ -56,7 +57,7 @@ npm run dev   # → backend/src/server.ts + frontend (no :4100 mock needed)
 
 Use the UI — watch **Apps Script → Executions** for each call.  
 Same HTTP path as Module 7: [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) — see [CODE_PATH § Mode C](CODE_PATH_GRAPHQL_TO_PS.md#mode-c--graphql--google-sheet-as-mock-ps-apps-script).  
-Your Sheet rows update on create/update/delete.
+Your Sheet rows update on create/update/PUT. GraphQL **delete** from the BFF uses **PUT** with inactive status (see [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts)); the script’s DELETE handler removes rows and does not mirror full PS terminate semantics.
 
 ---
 
@@ -84,6 +85,6 @@ Revoke: **Deploy → Manage deployments → Archive**.
 | Issue | Fix |
 |-------|-----|
 | 401 / HTML response | Redeploy with **Anyone** access |
-| Sheet empty | Row 1 must be headers: `emplid,effdt,effseq,name,...` |
+| Sheet empty | Row 1 must be headers: `emplid,effdt,effseq,name,...` (optional `hr_status` for terminate labs — see [GOOGLE_SHEETS](./GOOGLE_SHEETS.md)) |
 | GraphQL fetch failed | Check `PS_BASE_URL` has no trailing path except `/exec` |
 | Changes slow | Normal — each mutation hits Apps Script |

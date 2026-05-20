@@ -18,6 +18,7 @@ Keep these exact header names in row 1:
 | `emplid` | yes | `100001` |
 | `effdt` | yes | `2024-01-01` |
 | `effseq` | no | `0` |
+| `hr_status` | no | `A` (active) or `I` (inactive/terminated) |
 | `name` | yes | `Jane Doe` |
 | `email` | no | `jane.doe@example.com` |
 | `department` | no | `Engineering` |
@@ -25,8 +26,10 @@ Keep these exact header names in row 1:
 | `salary` | no | `95000` |
 | `manager_emplid` | no | `100003` |
 
-- One row = one effective-dated job row (same `emplid` can appear multiple times for promotions).
+- One row = one effective-dated job row (same `emplid` can appear multiple times for promotions or termination).
+- `hr_status`: `A` = active (default if column missing on import); `I` = inactive — used when the app **terminates** an employee (new eff-dated row, history kept).
 - Leave `manager_emplid` empty for directors / top-level rows.
+- Re-run `npm run export:employees` if your sheet lacks `hr_status` — export uses the same headers as [`csvEmployees.ts`](../backend/src/peoplesoft/csvEmployees.ts).
 
 ## One-time setup
 
@@ -88,7 +91,7 @@ Restart backend after Sheet edits.
 
 ## Day-to-day workflow
 
-1. Add / edit / delete rows in Google Sheets  
+1. Add / edit rows in Google Sheets (manual “terminate”: add a row with `hr_status=I` — do not delete history rows if you need eff-dated queries)  
 2. Either:  
    - **Download** → **File → Download → CSV** → save as `backend/data/employees.csv`, or  
    - Run [`npm run sync:sheet`](../package.json) → [`sync-employees-from-sheet.ts`](../backend/scripts/sync-employees-from-sheet.ts) (if `GOOGLE_SHEET_CSV_URL` is set)  

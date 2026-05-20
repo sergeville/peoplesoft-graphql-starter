@@ -1,7 +1,5 @@
 # Code path: GraphQL → PeopleSoft (mock)
 
-> **Edit the course copy:** [`Courses/CODE_PATH_GRAPHQL_TO_PS.md`](./Courses/CODE_PATH_GRAPHQL_TO_PS.md) — this root file is a mirror so editor links from `COURSE.md` resolve reliably.
-
 Trace every layer when you click **Save** or load the employee list.
 
 **Org context (app team vs PeopleSoft team):** [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md)
@@ -40,8 +38,8 @@ EmployeeService (employeeService.ts)
   if dataSource === "mock" → createEmployeeInStore()
 
 EmployeeStore (employeeStore.ts)
-  allJobRows.push(...)
-  persistToCsv()  →  backend/data/employees.csv
+  create/update: allJobRows.push(...) → persistToCsv()
+  deleteEmployee: terminateEmployeeInStore() → new row hr_status=I → persistToCsv()  (no row removal)
 ```
 
 **Files to open:**
@@ -89,6 +87,8 @@ mappers.ts
 
 ### Write (add / edit / delete)
 
+> **PeopleSoft reality:** PS does **not** hard-delete job rows. A “delete” is a **new effective-dated row** with **`EFFDT`** + **`HR_STATUS`** (e.g. `I` = inactive). History stays for audit and as-of queries. **This app matches that:** `deleteEmployee` calls `terminateEmployeeInStore()` (appends a row with `hr_status=I`) or IB **PUT** with `effdt` + `hrStatus` — see [§ PS terminate vs delete](#ps-terminate-vs-delete).
+
 ```text
 EmployeeForm.tsx
   useMutation(CREATE_EMPLOYEE)
@@ -99,13 +99,16 @@ resolvers/index.ts
 employeeService.ts
   integration-broker → integrationBrokerClient.createEmployee(input)
     → fetch("http://localhost:4100/employees", { method: "POST", body: JSON })   ← camelCase today, no outbound mapper
+  deleteEmployee → integrationBrokerClient.deleteEmployee()
+    → fetch PUT /employee/{emplid} { effdt, hrStatus: "I" }   ← terminate, not HTTP DELETE
 
 mockIntegrationBroker/server.ts
   POST /employees → createEmployeeInStore() → employees.csv
+  PUT /employee/{id} (hrStatus I) or DELETE alias → terminateEmployeeInStore()
   console.log("[Mock PS IB] POST /employees", ...)
 ```
 
-**Open `integrationBrokerClient.ts`** — every `fetch()` is the “call to PeopleSoft” (mock or real).  
+**Open `integrationBrokerClient.ts`** — every `fetch()` is the “call to PeopleSoft” (mock or real). JSDoc on `deleteEmployee`, `createEmployee`, etc. explains **why** (terminate vs DELETE).  
 Outbound bodies are not PS-shaped yet — see [Two-way mapping](#two-way-mapping).
 
 ---
@@ -136,7 +139,7 @@ Watch terminals when you use the UI (`npm run dev:mock-ps` labels them **`[backe
 [mock-ps]  [Mock PS IB] GET /employees?limit=50&offset=0
 [mock-ps]  [Mock PS IB] POST /employees
 [mock-ps]  [Mock PS IB] PUT /employee/100002
-[mock-ps]  [Mock PS IB] DELETE /employee/100099
+[mock-ps]  [Mock PS IB] DELETE /employee/100099   ← alias for terminate (eff-dated row, hr_status=I)
 ```
 
 ---
@@ -205,8 +208,24 @@ Inbound `mapIntegrationBrokerEmployee()` accepts PS-style names first, then came
 | `POSITION` | `position` | `position` |
 | `SALARY` | `salary` | `salary` |
 | `MANAGER_ID` | `managerEmplid` | `managerEmplid` |
+| `HR_STATUS` | `hrStatus` on `JobRow` (CSV `hr_status`) | terminate: `hrStatus` / `HR_STATUS` = `I` on PUT |
 
-Mock list/detail rows also expose `EFFDT` (see `PsBrokerEmployeeRow` in `payloads.ts`). That is not part of `EmployeeRecord`; eff-dated behavior for writes may use `effdt` on `IntegrationBrokerWriteInput` when the PS contract supports it.
+Mock list/detail rows expose `EFFDT` and `HR_STATUS` (see `PsBrokerEmployeeRow` in `payloads.ts`). `EFFDT` is not on `EmployeeRecord`; eff-dated writes use `effdt` on `IntegrationBrokerWriteInput` when the PS contract supports it.
+
+<a id="ps-terminate-vs-delete"></a>
+
+### PeopleSoft “delete” = effective-dated terminate (not row delete)
+
+| Layer | What this repo does today | Production PeopleSoft |
+|-------|---------------------------|------------------------|
+| **GraphQL** | `deleteEmployee(emplid)` → `Boolean` | Same mutation name; BFF maps to terminate |
+| **Mock CSV** | `terminateEmployeeInStore()` — new row, `hr_status=I`, same `emplid` | Eff-dated terminate row; history in CSV |
+| **BFF / IB client** | `deleteEmployee` → **PUT** `{ effdt, hrStatus: "I" }` (or mock **DELETE** alias) | IB contract may use PUT/POST + `EFFDT` + `HR_STATUS` |
+| **List / get** | `pickActiveEffectiveRow()` hides inactive effective rows | Active employees only in default UI |
+
+**Outbound mapping (future):** `mapEmployeeToIntegrationBroker()` for delete should emit `EFFDT` + `HR_STATUS` (and any fields your IB team requires).
+
+**Code:** [`employeeStore.ts`](../backend/src/peoplesoft/employeeStore.ts) (`terminateEmployeeInStore`), [`effectiveDating.ts`](../backend/src/peoplesoft/effectiveDating.ts) (`pickActiveEffectiveRow`), [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) (`deleteEmployee` → PUT).
 
 ### Why two-way mapping matters
 
@@ -214,7 +233,7 @@ GraphQL mutations (`createEmployee`, `updateEmployee`) ultimately call IB **POST
 
 ### Steps to implement two-way mapping (future work — docs only)
 
-1. **Agree REST contract with the PS/IB team** — sample POST/PUT JSON, required fields, eff-dated create/update rules, error shapes. Update [`DOCKER_AND_IB_CONFIGURE.md`](./DOCKER_AND_IB_CONFIGURE.md) checklist when samples arrive.
+1. **Agree REST contract with the PS/IB team** — sample POST/PUT JSON, required fields, eff-dated create/update/**terminate** rules (not hard delete), error shapes. Update [`DOCKER_AND_IB_CONFIGURE.md`](./DOCKER_AND_IB_CONFIGURE.md) checklist when samples arrive.
 2. **Add `mapEmployeeToIntegrationBroker()`** in [`mappers.ts`](../backend/src/peoplesoft/mappers.ts) — inverse of `mapIntegrationBrokerEmployee()` (internal / `IntegrationBrokerWriteInput` → PS JSON).
 3. **Wire outbound mapper** in [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) — use mapped body for `POST /employees` and `PUT /employee/{EMPLID}` instead of raw `input`.
 4. **Centralize `PsBrokerEmployeeRow`** — today the type lives in mock `payloads.ts`; consider a shared module used by mock payloads and outbound mapper so mock IB and BFF stay aligned.

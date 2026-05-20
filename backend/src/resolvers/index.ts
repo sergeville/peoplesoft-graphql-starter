@@ -5,8 +5,18 @@ type EmployeeParent = EmployeeRecord & {
   asOfDate?: string | null;
 };
 
+/**
+ * Why: Resolvers stay thin so GraphQL schema maps 1:1 to EmployeeService — schema stability
+ * without embedding PS eff-dating or mock/IB routing in the API layer.
+ * Course: Module 4–5 (queries) · Module 9 (mutations)
+ */
 export const resolvers = {
   Query: {
+    /**
+     * Why: Stash asOfDate on each parent so nested manager/jobHistory inherit the same
+     * temporal context as the list query without re-parsing args.
+     * Course: Module 4
+     */
     employees: async (
       _: unknown,
       args: {
@@ -24,12 +34,20 @@ export const resolvers = {
       return rows.map((row) => ({ ...row, asOfDate: args.asOfDate ?? null }));
     },
 
+    /**
+     * Why: Exposes headcount for pagination controls without transferring full employee lists.
+     * Course: Module 4
+     */
     employeeCount: async (
       _: unknown,
       args: { asOfDate?: string | null },
       ctx: GraphQLContext,
     ): Promise<number> => ctx.employeeService.countEmployees(args.asOfDate),
 
+    /**
+     * Why: Single-record lookup passes through to the BFF with asOfDate for historical views.
+     * Course: Module 4/6
+     */
     employee: async (
       _: unknown,
       args: { id: string; asOfDate?: string | null },
@@ -42,6 +60,10 @@ export const resolvers = {
   },
 
   Mutation: {
+    /**
+     * Why: Mutation delegates to service so GraphQL only validates input shape, not PS hire rules.
+     * Course: Module 9
+     */
     createEmployee: async (
       _: unknown,
       args: {
@@ -62,6 +84,10 @@ export const resolvers = {
       return { ...row, asOfDate: args.input.effdt ?? null };
     },
 
+    /**
+     * Why: Forwards update payload unchanged to the BFF; effdt on parent keeps field resolvers consistent.
+     * Course: Module 9
+     */
     updateEmployee: async (
       _: unknown,
       args: {
@@ -85,6 +111,10 @@ export const resolvers = {
       return { ...row, asOfDate: args.input.effdt ?? null };
     },
 
+    /**
+     * Why: Schema says delete but service terminates — documents the PS contract at the API edge.
+     * Course: Module 9 · CODE_PATH § ps-terminate-vs-delete
+     */
     deleteEmployee: async (
       _: unknown,
       args: { emplid: string },
@@ -93,6 +123,10 @@ export const resolvers = {
   },
 
   Employee: {
+    /**
+     * Why: Manager is a separate fetch so list queries stay light; asOfDate propagates from parent.
+     * Course: Module 5
+     */
     manager: async (
       parent: EmployeeParent,
       _: unknown,
@@ -105,8 +139,15 @@ export const resolvers = {
       return manager ? { ...manager, asOfDate: parent.asOfDate } : null;
     },
 
+    /**
+     * Why: Surfaces the query's asOfDate on Employee for clients that display "effective as of" in the UI.
+     */
     effectiveDate: (parent: EmployeeParent) => parent.asOfDate ?? null,
 
+    /**
+     * Why: jobHistory is loaded on demand so employee lists do not pay for segment expansion.
+     * Course: Module 5/10
+     */
     jobHistory: async (
       parent: EmployeeParent,
       _: unknown,

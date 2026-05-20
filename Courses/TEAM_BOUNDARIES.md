@@ -43,7 +43,7 @@ Integration Broker is **only** the Side 2 path when `PEOPLESOFT_DATA_SOURCE=inte
 | GraphQL schema & resolvers | REST resource paths (e.g. `/employees`, `/employee/{emplid}`) |
 | Next.js UI & UX | IB operations wired to PS components / CI |
 | [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) (HTTP **consumer**) | Published API docs, sample JSON, error codes |
-| [`mappers.ts`](../backend/src/peoplesoft/mappers.ts) (PS JSON → `Employee`) | Field names: `EMPLID`, `EMAIL_ADDR`, `EFFDT`, etc. |
+| [`mappers.ts`](../backend/src/peoplesoft/mappers.ts) (PS JSON → `Employee`) | Field names: `EMPLID`, `EMAIL_ADDR`, `EFFDT`, `HR_STATUS`, etc. |
 | Env: `PS_BASE_URL`, service account for **their** API | Dev / test / prod IB endpoints, credentials rotation |
 | BFF session / SSO (production) | Row-level security enforced in PS for each operator |
 
@@ -72,7 +72,7 @@ Before go-live, align on:
 
 1. **Base URL** and environment URLs (dev / test / prod)
 2. **Authentication** (Basic, OAuth, certificate, per-user token from SSO)
-3. **Operations**: list, get, count, create, update, delete — exact paths and verbs
+3. **Operations**: list, get, count, create, update, **terminate** (“delete”) — exact paths and verbs (terminate is usually **PUT** + `EFFDT` + `HR_STATUS`, not HTTP DELETE or row removal)
 4. **Pagination** (`limit` / `offset` or cursor)
 5. **Effective dating** (`asOfDate` query param or header)
 6. **JSON samples** for success and error responses

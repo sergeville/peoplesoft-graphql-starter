@@ -4,6 +4,7 @@ import { URL } from "node:url";
 import {
   createEmployeeInStore,
   deleteEmployeeFromStore,
+  terminateEmployeeInStore,
   updateEmployeeInStore,
   type EmployeeWriteInput,
 } from "../employeeStore.js";
@@ -21,10 +22,12 @@ export type MockIntegrationBrokerOptions = {
   password?: string;
 };
 
+/** Why: IB list/get accept asOfDate query param; extract once so every route applies the same PS temporal filter. */
 function readAsOfDate(url: URL): string | null {
   return url.searchParams.get("asOfDate");
 }
 
+/** Why: Normalize limit/offset and page/pageSize so the mock IB matches real PS pagination contracts. */
 function readPagination(url: URL): { limit: number | null; offset: number } {
   const limitRaw = url.searchParams.get("limit");
   const offsetRaw = url.searchParams.get("offset");
@@ -50,6 +53,7 @@ function readPagination(url: URL): { limit: number | null; offset: number } {
   return { limit, offset };
 }
 
+/** Why: Decode Basic credentials for mock IB auth parity with production Integration Broker. */
 function parseBasicAuth(
   header: string | undefined,
 ): { username: string; password: string } | null {
@@ -63,6 +67,7 @@ function parseBasicAuth(
   };
 }
 
+/** Why: Optional mock credentials let Mode B exercises fail like real PS when auth is wrong. */
 function authorize(
   req: IncomingMessage,
   options: MockIntegrationBrokerOptions,
@@ -78,6 +83,7 @@ function authorize(
   );
 }
 
+/** Why: Consistent JSON + mock header so clients can tell course traffic from a real PS host. */
 function sendJson(res: ServerResponse, status: number, body: unknown) {
   res.writeHead(status, {
     "Content-Type": "application/json",
@@ -86,15 +92,18 @@ function sendJson(res: ServerResponse, status: number, body: unknown) {
   res.end(JSON.stringify(body, null, 2));
 }
 
+/** Why: Plain-text errors for bad requests mirror simple IB failure bodies without JSON parsing. */
 function sendText(res: ServerResponse, status: number, message: string) {
   res.writeHead(status, { "Content-Type": "text/plain" });
   res.end(message);
 }
 
+/** Why: Request logging helps trace GraphQL→IB→store flow during local Mode B debugging. */
 function logRequest(method: string, path: string) {
   console.log(`[Mock PS IB] ${method} ${path}`);
 }
 
+/** Why: POST/PUT bodies must be parsed once into a neutral object before PS field mapping. */
 async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = [];
   for await (const chunk of req) {
@@ -105,6 +114,11 @@ async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknow
   return JSON.parse(text) as Record<string, unknown>;
 }
 
+/**
+ * Why: IB JSON may use camelCase or PS HR_STATUS; normalize to store input so mock IB and
+ * GraphQL mutations share one write shape against employeeStore.
+ * Course: Module 7
+ */
 function bodyToWriteInput(body: Record<string, unknown>): EmployeeWriteInput {
   return {
     emplid: body.emplid != null ? String(body.emplid) : null,
@@ -125,9 +139,30 @@ function bodyToWriteInput(body: Record<string, unknown>): EmployeeWriteInput {
           ? String(body.manager_emplid)
           : null,
     effdt: body.effdt != null ? String(body.effdt) : null,
+    hrStatus:
+      body.hrStatus != null
+        ? String(body.hrStatus)
+        : body.HR_STATUS != null
+          ? String(body.HR_STATUS)
+          : null,
   };
 }
 
+/**
+ * Why: PS terminates via inactive HR_STATUS on PUT, not a separate route — detect so update
+ * vs terminate branches match production IB behavior.
+ * Course: Module 9 · CODE_PATH § ps-terminate-vs-delete
+ */
+function isTerminateInput(input: EmployeeWriteInput): boolean {
+  const code = (input.hrStatus?.trim() || "").toUpperCase();
+  return code === "I" || code === "T";
+}
+
+/**
+ * Why: Local :4100 IB mimics PS REST so Mode B runs without PeopleTools — same routes the
+ * real client calls, backed by employeeStore and PS-shaped payloads.
+ * Course: Module 7 · Mode B
+ */
 export function createMockIntegrationBrokerServer(
   options: MockIntegrationBrokerOptions,
 ) {
@@ -217,7 +252,12 @@ export function createMockIntegrationBrokerServer(
       const emplid = decodeURIComponent(employeeMatch[1] ?? "");
       void readJsonBody(req)
         .then((body) => {
-          updateEmployeeInStore(emplid, bodyToWriteInput(body));
+          const input = bodyToWriteInput(body);
+          if (isTerminateInput(input)) {
+            terminateEmployeeInStore(emplid, input.effdt);
+          } else {
+            updateEmployeeInStore(emplid, input);
+          }
           const row = getPsBrokerEmployee(emplid, asOfDate);
           if (!row) {
             sendText(res, 404, `Employee not found: ${emplid}`);
@@ -232,8 +272,8 @@ export function createMockIntegrationBrokerServer(
     if (req.method === "DELETE" && employeeMatch) {
       logRequest("DELETE", url.pathname);
       const emplid = decodeURIComponent(employeeMatch[1] ?? "");
-      const deleted = deleteEmployeeFromStore(emplid);
-      sendJson(res, 200, { status: "success", deleted });
+      const terminated = deleteEmployeeFromStore(emplid);
+      sendJson(res, 200, { status: "success", terminated, deleted: terminated });
       return;
     }
 
@@ -245,6 +285,11 @@ export function createMockIntegrationBrokerServer(
   });
 }
 
+/**
+ * Why: Startup helper binds the mock IB port for dev scripts so PS_BASE_URL can point at
+ * localhost without embedding listen logic in every entrypoint.
+ * Course: Module 7
+ */
 export async function listenMockIntegrationBroker(
   options: MockIntegrationBrokerOptions,
 ): Promise<{ url: string; close: () => Promise<void> }> {

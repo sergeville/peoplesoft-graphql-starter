@@ -221,7 +221,7 @@ Manager with 12 direct/indirect reports → `total: 12`. HR admin service accoun
 | View one | GET by EMPLID | 404 if not authorized |
 | Update | CI UPDATE or POST | CI rejects if row not editable |
 | Add | CI CREATE | Role must allow hire/add |
-| “Delete” | Effective-dated correction | Rarely hard delete |
+| “Delete” | **PUT** terminate: `EFFDT` + `HR_STATUS` = `I` (or CI equivalent) | Not hard delete — history kept; BFF maps GraphQL `deleteEmployee` to this |
 
 GraphQL mutations should map to **IB operations**, not CSV, in production:
 
