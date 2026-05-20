@@ -303,7 +303,7 @@ export function createMockIntegrationBrokerServer(
  */
 export async function listenMockIntegrationBroker(
   options: MockIntegrationBrokerOptions,
-): Promise<{ url: string; close: () => Promise<void> }> {
+): Promise<{ url: string; server: ReturnType<typeof createServer>; close: () => Promise<void> }> {
   traceFn("mock-ib", "listenMockIntegrationBroker", { port: options.port });
   const server = createMockIntegrationBrokerServer(options);
 
@@ -315,8 +315,10 @@ export async function listenMockIntegrationBroker(
   const url = `http://localhost:${options.port}`;
   return {
     url,
+    server,
     close: () =>
       new Promise((resolve, reject) => {
+        server.closeAllConnections();
         server.close((err) => (err ? reject(err) : resolve()));
       }),
   };

@@ -141,6 +141,25 @@ curl -u demo:demo "http://localhost:4100/employee/100001?asOfDate=2024-06-01"
 
 Code: `backend/src/peoplesoft/mockIntegrationBroker/`
 
+### Logs & call-path trace (`dev:mock-ps`)
+
+`npm run dev:mock-ps` tees stdout to `logs/mock-ib.log`, `logs/backend.log`, and `logs/frontend.log`.
+
+```bash
+npm run logs          # last lines from all three
+npm run logs:follow   # tail -f all three
+```
+
+**Trace the GraphQL → PS path:** dev logs lines tagged `[trace]` (graphql → resolver → service → IB → mock-ps). Example:
+
+```bash
+grep '[trace]' logs/backend.log
+```
+
+On by default in dev; set `DEV_TRACE=0` in `backend/.env` to disable. More: [Courses/CODE_PATH_GRAPHQL_TO_PS.md](./Courses/CODE_PATH_GRAPHQL_TO_PS.md) (Mode B / `[trace]`).
+
+**Restart:** if ports are busy, run `npm run stack:stop` first (see [Port conflicts](#port-conflicts-docker-vs-npm-run-dev) above).
+
 ## Swap mock → real Integration Broker
 
 1. Copy `backend/.env.example` values into `backend/.env`

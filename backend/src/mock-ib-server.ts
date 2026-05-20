@@ -26,10 +26,14 @@ if (isDevTraceEnabled()) {
   console.log("  Dev trace: ON — filter logs with [trace] mock-ib (pairs with backend [trace])");
 }
 
+let shuttingDown = false;
 const shutdown = async () => {
+  if (shuttingDown) return;
+  shuttingDown = true;
   await close();
   process.exit(0);
 };
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+for (const signal of ["SIGINT", "SIGTERM", "SIGUSR2"] as const) {
+  process.on(signal, () => void shutdown());
+}
