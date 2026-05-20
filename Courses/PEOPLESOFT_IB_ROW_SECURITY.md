@@ -299,7 +299,7 @@ sequenceDiagram
 
 - [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — who owns BFF vs IB
 - [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) — cutover to real PS
-- [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — `integrationBrokerClient.ts` trace
+- [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md) — `integrationBrokerClient.ts` trace
 - [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md) — mock data editing (dev only)
 - [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) — all lab commands
 - [README.md](../README.md) — starter quick start

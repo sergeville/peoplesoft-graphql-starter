@@ -31,10 +31,10 @@ Hands-on curriculum: **browser → GraphQL BFF → PeopleSoft (mock CSV, mock IB
 | 4 | Backend boot | `dev:backend`, `typecheck` | [`server.ts`](../backend/src/server.ts) |
 | 5 | Resolvers & service | `dev:backend` | — |
 | 6 | Mock data & CSV | `export:employees`, `sync:sheet` | [GOOGLE_SHEETS](./GOOGLE_SHEETS.md) |
-| 7 | Mock Integration Broker | `dev:mock-ps`, `mock-ib` | [CODE_PATH](./CODE_PATH_GRAPHQL_TO_PS.md) |
+| 7 | Mock Integration Broker | `dev:mock-ps`, `mock-ib` | [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) |
 | 7b | Docker mock stack | `stack:docker`, `stack:stop` | [DOCKER_AND_IB](./DOCKER_AND_IB_CONFIGURE.md) |
 | 8 | Frontend (Next.js + Apollo) | `dev:frontend`, `dev` | — |
-| 9 | CRUD mutations & forms | `dev` (mock) or `dev:mock-ps` | [CODE_PATH](./CODE_PATH_GRAPHQL_TO_PS.md) |
+| 9 | CRUD mutations & forms | `dev` (mock) or `dev:mock-ps` | [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) |
 | 10 | Pagination & effective dating | `dev` | — |
 | 11 | Real PS & row security | (config + design) | [PEOPLESOFT_IB_ROW_SECURITY](./PEOPLESOFT_IB_ROW_SECURITY.md) |
 | 12 | Capstone | `build`, `stack:docker` | — |
@@ -49,7 +49,7 @@ Full command list: **[SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md)**.
 | Doc | Topic | Typical commands |
 |-----|--------|------------------|
 | [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) | App team vs PeopleSoft team | — (concepts); trace with `dev:mock-ps` |
-| [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) | Trace Save → `fetch()` | `dev`, `dev:mock-ps`, `export:employees` |
+| [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md) | Trace Save → `fetch()`; [two-way PS mapping](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping) | `dev`, `dev:mock-ps`, `export:employees` |
 | [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) | Docker + IB map; **dev vs prod** + production `.env` | `stack:docker`, `stack:stop` |
 | [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md) | Edit mock data in Sheets | `export:employees`, `sync:sheet` |
 | [GOOGLE_SHEET_AS_MOCK_PS.md](./GOOGLE_SHEET_AS_MOCK_PS.md) | Apps Script as mock PS REST | `dev` + deploy [`google-apps-script-mock-ps.gs`](./google-apps-script-mock-ps.gs) |

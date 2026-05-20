@@ -93,7 +93,7 @@ Before go-live, align on:
 | PS JSON mapping | [`backend/src/peoplesoft/mappers.ts`](../backend/src/peoplesoft/mappers.ts) | Yours (adjust to their JSON) |
 | Mock PS server | [`backend/src/peoplesoft/mockIntegrationBroker/`](../backend/src/peoplesoft/mockIntegrationBroker/) | Dev stand-in only |
 
-**Trace a write end-to-end:** [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) (Mode A: `dev`; Mode B: `dev:mock-ps`)
+**Trace a write end-to-end:** [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md) (Mode A: `dev`; Mode B: `dev:mock-ps`)
 
 **Row security in production:** [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md)
 

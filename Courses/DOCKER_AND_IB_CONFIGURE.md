@@ -159,7 +159,7 @@ Use this checklist when moving from course mocks to a real site. Your platform t
 | **REST base URL** (Integration Broker published endpoint) | `PS_BASE_URL` in [`backend/.env`](../backend/.env) |
 | **Authentication** (Basic, OAuth, cert, per-user token from SSO) | `PS_USERNAME` / `PS_PASSWORD` or custom headers in [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) |
 | **Operation list** (paths + HTTP verbs) | Must match [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) |
-| **Sample JSON** (`EMPLID`, `NAME`, `EMAIL_ADDR`, …) | [`mappers.ts`](../backend/src/peoplesoft/mappers.ts) |
+| **Sample JSON** (`EMPLID`, `NAME`, `EMAIL_ADDR`, …) | [`mappers.ts`](../backend/src/peoplesoft/mappers.ts) — **inbound** mapper today; agree **POST/PUT** sample bodies too ([two-way mapping](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping)) |
 | **Pagination** (`limit`/`offset` or site-specific) | Resolvers + client |
 | **`asOfDate`** behavior | Query param / header agreement |
 | **Row security model** (how BFF passes manager identity) | [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md) |
@@ -364,7 +364,7 @@ What our **mock** exposes on port 4100 is what you should ask the PS team to doc
 - `asOfDate` — effective-dated snapshot (`MAX(EFFDT) <= asOfDate`)
 - `limit` / `offset` or `page` / `pageSize` — pagination
 
-**JSON fields** (examples in mock): `EMPLID`, `NAME`, `EMAIL_ADDR`, `DEPTID`, `EFFDT` → mapped in `backend/src/peoplesoft/mappers.ts`.
+**JSON fields** (examples in mock): `EMPLID`, `NAME`, `EMAIL_ADDR`, `DEPTID`, `EFFDT` → **inbound** mapping in `backend/src/peoplesoft/mappers.ts`. Mock GET rows are built in [`mockIntegrationBroker/payloads.ts`](../backend/src/peoplesoft/mockIntegrationBroker/payloads.ts) (`jobRowToPsBrokerRow`). Writes from the BFF still use camelCase until an outbound mapper is added — see [CODE_PATH § Two-way mapping](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping).
 
 ---
 

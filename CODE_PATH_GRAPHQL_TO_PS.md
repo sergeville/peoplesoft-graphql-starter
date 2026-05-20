@@ -1,5 +1,7 @@
 # Code path: GraphQL → PeopleSoft (mock)
 
+> **Edit the course copy:** [`Courses/CODE_PATH_GRAPHQL_TO_PS.md`](./Courses/CODE_PATH_GRAPHQL_TO_PS.md) — this root file is a mirror so editor links from `COURSE.md` resolve reliably.
+
 Trace every layer when you click **Save** or load the employee list.
 
 **Org context (app team vs PeopleSoft team):** [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md)

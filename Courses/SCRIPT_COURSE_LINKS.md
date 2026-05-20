@@ -23,13 +23,13 @@ When several modules apply, pick the one you are teaching (**To pick**).
 | [Module 7](./COURSE.md#module-7--mock-integration-broker) | Mock IB :4100 | `npm run dev:mock-ps`, `npm run mock-ib` | [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts), [`mockIntegrationBroker/server.ts`](../backend/src/peoplesoft/mockIntegrationBroker/server.ts) |
 | [Module 7b](./COURSE.md#module-7b--docker-mock-stack--integration-broker-configure-map) | Docker stack | `npm run stack:docker`, `npm run stack:stop` | [`docker-compose.yml`](../docker-compose.yml), [`stop-dev-stack.sh`](../scripts/stop-dev-stack.sh) |
 | [Module 8](./COURSE.md#module-8--frontend-nextjs--apollo-client) | UI only | `npm run dev:frontend` | [`frontend/package.json`](../frontend/package.json), [`apollo-client.ts`](../frontend/lib/apollo-client.ts) |
-| [Module 9](./COURSE.md#module-9--crud-mutations--forms) | CRUD UI | `npm run dev` or `npm run dev:mock-ps` | [`EmployeeForm.tsx`](../frontend/components/EmployeeForm.tsx) — [CODE_PATH](./CODE_PATH_GRAPHQL_TO_PS.md) |
+| [Module 9](./COURSE.md#module-9--crud-mutations--forms) | CRUD UI | `npm run dev` or `npm run dev:mock-ps` | [`EmployeeForm.tsx`](../frontend/components/EmployeeForm.tsx) — [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) |
 | [Module 10](./COURSE.md#module-10--pagination--effective-dating) | List paging | `npm run dev` | [`EmployeeList.tsx`](../frontend/components/EmployeeList.tsx), [`effectiveDating.ts`](../backend/src/peoplesoft/effectiveDating.ts) |
 | [Module 11](./COURSE.md#module-11--real-peoplesoft--row-security) | Production IB | (env only) | [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) — [PEOPLESOFT_IB_ROW_SECURITY](./PEOPLESOFT_IB_ROW_SECURITY.md) |
 | [Module 12](./COURSE.md#module-12--capstone-project) | Ship / ops | `npm run build`, `npm run stack:docker` | root + `backend/` + `frontend/` `package.json` |
 | [Section 13](./MODULE_13_APOLLO_MCP_AGENTS.md) | Agents → MCP Server → MCP Apps Client | `npm run dev:mcp`, `npm run dev:with-mcp`, `npm run mcp:inspect` | [`apollo-mcp/`](../apollo-mcp/), [`run-apollo-mcp.sh`](../scripts/run-apollo-mcp.sh) |
 | [GOOGLE_SHEET_AS_MOCK_PS](./GOOGLE_SHEET_AS_MOCK_PS.md) | Sheet as mock PS | `npm run dev` | [`google-apps-script-mock-ps.gs`](./google-apps-script-mock-ps.gs) |
-| [CODE_PATH](./CODE_PATH_GRAPHQL_TO_PS.md) | End-to-end trace | Mode A: `dev`; B: `dev:mock-ps` | See [CODE_PATH](./CODE_PATH_GRAPHQL_TO_PS.md) |
+| [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) | End-to-end trace | Mode A: `dev`; B: `dev:mock-ps` | See [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) |
 | [Troubleshooting](./COURSE.md#troubleshooting-guide) | Free ports | `npm run stack:stop` | [`stop-dev-stack.sh`](../scripts/stop-dev-stack.sh) |
 | [README versioning](../README.md#versioning) | Patch on commit | `npm run version:patch` | [`bump-patch-version.mjs`](../scripts/bump-patch-version.mjs), [`.githooks/pre-commit`](../.githooks/pre-commit) |
 
@@ -40,7 +40,7 @@ When several modules apply, pick the one you are teaching (**To pick**).
 | Doc | Run | Script / entry |
 |-----|-----|----------------|
 | [TEAM_BOUNDARIES](./TEAM_BOUNDARIES.md) | `dev:mock-ps` (To pick) | Side 2 trace — [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) |
-| [CODE_PATH](./CODE_PATH_GRAPHQL_TO_PS.md) | `dev`, `dev:mock-ps`, `export:employees` | Modes A/B/C in that doc |
+| [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) | `dev`, `dev:mock-ps`, `export:employees` | Modes A/B/C in that doc |
 | [DOCKER_AND_IB](./DOCKER_AND_IB_CONFIGURE.md) | `stack:docker`, `stack:stop` | [`docker-compose.yml`](../docker-compose.yml) |
 | [GOOGLE_SHEETS](./GOOGLE_SHEETS.md) | `export:employees`, `sync:sheet` | `backend/scripts/*.ts` |
 | [GOOGLE_SHEET_AS_MOCK_PS](./GOOGLE_SHEET_AS_MOCK_PS.md) | `dev` | [`google-apps-script-mock-ps.gs`](./google-apps-script-mock-ps.gs) |
@@ -53,7 +53,7 @@ When several modules apply, pick the one you are teaching (**To pick**).
 | Command | Script / entry | Primary course | To pick |
 |---------|----------------|----------------|---------|
 | `npm run dev` | `server.ts` + Next `dev` | [Module 0](./COURSE.md#module-0--setup--first-run) | [Module 2](./COURSE.md#module-2--the-three-runtimes-ports), [8](./COURSE.md#module-8--frontend-nextjs--apollo-client) |
-| `npm run dev:mock-ps` | `mock-ib-server.ts` + `server.ts` + Next | [Module 7](./COURSE.md#module-7--mock-integration-broker) | [Module 2](./COURSE.md#module-2--the-three-runtimes-ports), [CODE_PATH § B](./CODE_PATH_GRAPHQL_TO_PS.md#mode-b--graphql--http--mock-ps-see-fetch) |
+| `npm run dev:mock-ps` | `mock-ib-server.ts` + `server.ts` + Next | [Module 7](./COURSE.md#module-7--mock-integration-broker) | [Module 2](./COURSE.md#module-2--the-three-runtimes-ports), [CODE_PATH § B](CODE_PATH_GRAPHQL_TO_PS.md#mode-b--graphql--http--mock-ps-see-fetch) |
 | `npm run dev:backend` | [`server.ts`](../backend/src/server.ts) | [Module 4](./COURSE.md#module-4--backend-boot-flow) | [Module 3](./COURSE.md#module-3--graphql-contract), [5](./COURSE.md#module-5--resolvers--employeeservice) |
 | `npm run dev:frontend` | Next `dev` | [Module 8](./COURSE.md#module-8--frontend-nextjs--apollo-client) | [Module 9](./COURSE.md#module-9--crud-mutations--forms) |
 | `npm run mock-ib` | [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts) | [Module 7](./COURSE.md#module-7--mock-integration-broker) | [DOCKER § A](./DOCKER_AND_IB_CONFIGURE.md#part-a--docker-mock-stack-your-machine) |
@@ -117,7 +117,8 @@ When several modules apply, pick the one you are teaching (**To pick**).
 | Topic | Doc |
 |-------|-----|
 | Full module path | [COURSE.md](./COURSE.md) |
-| GraphQL → PS paths | [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) |
+| GraphQL → PS paths | [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md) |
+| Two-way PS ↔ GraphQL mapping | [CODE_PATH § Two-way mapping](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping) |
 | Docker + IB map | [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) |
 | Team boundaries | [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) |
 | Row security | [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md) |

@@ -14,7 +14,7 @@
 2. Do each module in order; **Labs** are hands-on (required).
 3. Use **Checkpoint questions** to verify understanding before moving on.
 4. Use [Courses/README.md](./README.md) as the **hub** (module map + supplemental docs).
-5. Deep dives: [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md), [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md).
+5. Deep dives: [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md), [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md).
 6. **Scripts ↔ course:** [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) — each module’s **Scripts for this module** table links to `npm run` and source files; scripts link back (**To pick** when several apply).
 
 | Module | Topic | ~Time | Primary commands → [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md) |
@@ -177,7 +177,7 @@ The frontend **never** talks to PeopleSoft directly. GraphQL is **internal** to 
 
 - Root [README.md](../README.md) — Architecture & two sides
 - [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — org split, deliverables, questions for PS team
-- [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — trace Save → `fetch()` (commands in [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md))
+- [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md) — trace Save → `fetch()` (commands in [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md))
 - [Courses/README.md](./README.md) — module + script map
 
 ### Lab 1.1 — Find the team boundary in code
@@ -553,7 +553,9 @@ Three processes: **mock-ps :4100**, **backend :4000**, **frontend :3000**.
 ### PS-shaped JSON
 
 Mock returns `EMPLID`, `EMAIL_ADDR`, etc.  
-`mappers.ts` converts → internal `EmployeeRecord`.
+`mappers.ts` converts → internal `EmployeeRecord` (**inbound only** today).
+
+**Two-way mapping (design):** Outbound POST/PUT still send camelCase JSON; production IB usually needs PS field names on writes. Full field table, limitations (`manager`, `jobHistory`, `effectiveDate`), and implementation steps — [CODE_PATH § Two-way mapping](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping).
 
 ### Lab 7.1
 
@@ -575,6 +577,7 @@ Read `mockIntegrationBroker/server.ts` and `payloads.ts`.
 
 - What does `integrationBrokerClient.ts` do?
 - Why is `mappers.ts` required?
+- Inbound vs outbound: which direction is implemented today? ([answer](CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping))
 
 ---
 
@@ -734,8 +737,8 @@ Apollo Client:
 
 | Mode | Run | Trace |
 |------|-----|--------|
-| CSV CRUD (default) | `npm run dev` | [CODE_PATH § Mode A](./CODE_PATH_GRAPHQL_TO_PS.md#mode-a--graphql--csv-current-default) |
-| HTTP to mock IB | `npm run dev:mock-ps` | [CODE_PATH § Mode B](./CODE_PATH_GRAPHQL_TO_PS.md#mode-b--graphql--http--mock-ps-see-fetch) |
+| CSV CRUD (default) | `npm run dev` | [CODE_PATH § Mode A](CODE_PATH_GRAPHQL_TO_PS.md#mode-a--graphql--csv-current-default) |
+| HTTP to mock IB | `npm run dev:mock-ps` | [CODE_PATH § Mode B](CODE_PATH_GRAPHQL_TO_PS.md#mode-b--graphql--http--mock-ps-see-fetch) |
 
 Index: [SCRIPT_COURSE_LINKS § Module 9](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
 
@@ -1082,7 +1085,7 @@ Each command ↔ file ↔ module: **[SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LIN
 2. [README.md](../README.md) — repo quick start
 3. [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) — keep open while running labs
 4. [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — after Module 1
-5. [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — Modules 6–9
+5. [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md) — Modules 6–9
 6. [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md) — Module 6 lab
 7. [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) — Module 7b
 8. [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md) — Module 11

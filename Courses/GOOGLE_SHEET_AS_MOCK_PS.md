@@ -55,7 +55,7 @@ npm run dev   # → backend/src/server.ts + frontend (no :4100 mock needed)
 ```
 
 Use the UI — watch **Apps Script → Executions** for each call.  
-Same HTTP path as Module 7: [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) — see [CODE_PATH § Mode C](./CODE_PATH_GRAPHQL_TO_PS.md#mode-c--graphql--google-sheet-as-mock-ps-apps-script).  
+Same HTTP path as Module 7: [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) — see [CODE_PATH § Mode C](CODE_PATH_GRAPHQL_TO_PS.md#mode-c--graphql--google-sheet-as-mock-ps-apps-script).  
 Your Sheet rows update on create/update/delete.
 
 ---

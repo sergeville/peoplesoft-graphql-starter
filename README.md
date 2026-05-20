@@ -107,6 +107,8 @@ In many organizations **your app team** owns Side 1; a **PeopleSoft team** owns 
 **Study the PS boundary in:** `backend/src/peoplesoft/integrationBrokerClient.ts`  
 **Full write-up:** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md) · [Courses/CODE_PATH_GRAPHQL_TO_PS.md](./Courses/CODE_PATH_GRAPHQL_TO_PS.md)
 
+**PeopleSoft JSON mapping:** Inbound IB responses are mapped in `mappers.ts` (`EMPLID` → `emplid`, etc.). GraphQL types align 1:1 with `EmployeeRecord` (no separate GraphQL mapper). Outbound POST/PUT still send camelCase bodies until a reverse mapper is wired — see [Courses/CODE_PATH § Two-way mapping](./Courses/CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping).
+
 ## Edit employees in Google Sheets
 
 1. `npm run export:employees` → creates `backend/data/employees.csv`

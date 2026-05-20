@@ -307,7 +307,7 @@ Before exposing MCP against real PeopleSoft:
 
 - [Apollo MCP Server docs](https://www.apollographql.com/docs/apollo-mcp-server/)
 - [Define MCP tools](https://www.apollographql.com/docs/apollo-mcp-server/define-tools)
-- [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — same BFF path agents use
+- [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md) — same BFF path agents use
 - [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — MCP does not change Side 1 / Side 2 split
 
 ---
