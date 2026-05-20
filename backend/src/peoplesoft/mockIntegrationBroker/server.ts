@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { URL } from "node:url";
 
-import { devTrace } from "../../devTrace.js";
+import { traceFn } from "../../devTrace.js";
 import {
   createEmployeeInStore,
   deleteEmployeeFromStore,
@@ -25,11 +25,13 @@ export type MockIntegrationBrokerOptions = {
 
 /** Why: IB list/get accept asOfDate query param; extract once so every route applies the same PS temporal filter. */
 function readAsOfDate(url: URL): string | null {
+  traceFn("mock-ib", "readAsOfDate");
   return url.searchParams.get("asOfDate");
 }
 
 /** Why: Normalize limit/offset and page/pageSize so the mock IB matches real PS pagination contracts. */
 function readPagination(url: URL): { limit: number | null; offset: number } {
+  traceFn("mock-ib", "readPagination");
   const limitRaw = url.searchParams.get("limit");
   const offsetRaw = url.searchParams.get("offset");
   const pageRaw = url.searchParams.get("page");
@@ -58,6 +60,7 @@ function readPagination(url: URL): { limit: number | null; offset: number } {
 function parseBasicAuth(
   header: string | undefined,
 ): { username: string; password: string } | null {
+  traceFn("mock-ib", "parseBasicAuth");
   if (!header?.startsWith("Basic ")) return null;
   const decoded = Buffer.from(header.slice(6), "base64").toString("utf8");
   const colon = decoded.indexOf(":");
@@ -73,6 +76,7 @@ function authorize(
   req: IncomingMessage,
   options: MockIntegrationBrokerOptions,
 ): boolean {
+  traceFn("mock-ib", "authorize");
   const expectedUser = options.username;
   const expectedPass = options.password;
   if (!expectedUser || !expectedPass) return true;
@@ -86,6 +90,7 @@ function authorize(
 
 /** Why: Consistent JSON + mock header so clients can tell course traffic from a real PS host. */
 function sendJson(res: ServerResponse, status: number, body: unknown) {
+  traceFn("mock-ib", "sendJson", { status });
   res.writeHead(status, {
     "Content-Type": "application/json",
     "X-Mock-PeopleSoft-IB": "true",
@@ -95,17 +100,19 @@ function sendJson(res: ServerResponse, status: number, body: unknown) {
 
 /** Why: Plain-text errors for bad requests mirror simple IB failure bodies without JSON parsing. */
 function sendText(res: ServerResponse, status: number, message: string) {
+  traceFn("mock-ib", "sendText", { status, message });
   res.writeHead(status, { "Content-Type": "text/plain" });
   res.end(message);
 }
 
 /** Why: Request logging helps trace GraphQL→IB→store flow during local Mode B debugging. */
 function logRequest(method: string, path: string) {
-  devTrace("mock-ib", `${method} ${path}`);
+  traceFn("mock-ib", "handleRequest", { method, path });
 }
 
 /** Why: POST/PUT bodies must be parsed once into a neutral object before PS field mapping. */
 async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknown>> {
+  traceFn("mock-ib", "readJsonBody");
   const chunks: Buffer[] = [];
   for await (const chunk of req) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -121,6 +128,7 @@ async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknow
  * Course: Module 7
  */
 function bodyToWriteInput(body: Record<string, unknown>): EmployeeWriteInput {
+  traceFn("mock-ib", "bodyToWriteInput");
   return {
     emplid: body.emplid != null ? String(body.emplid) : null,
     name: String(body.name ?? ""),
@@ -155,6 +163,7 @@ function bodyToWriteInput(body: Record<string, unknown>): EmployeeWriteInput {
  * Course: Module 9 · CODE_PATH § ps-terminate-vs-delete
  */
 function isTerminateInput(input: EmployeeWriteInput): boolean {
+  traceFn("mock-ib", "isTerminateInput", { hrStatus: input.hrStatus });
   const code = (input.hrStatus?.trim() || "").toUpperCase();
   return code === "I" || code === "T";
 }
@@ -167,6 +176,7 @@ function isTerminateInput(input: EmployeeWriteInput): boolean {
 export function createMockIntegrationBrokerServer(
   options: MockIntegrationBrokerOptions,
 ) {
+  traceFn("mock-ib", "createMockIntegrationBrokerServer");
   return createServer((req, res) => {
     if (!req.url || !req.method) {
       sendText(res, 400, "Bad request");
@@ -294,6 +304,7 @@ export function createMockIntegrationBrokerServer(
 export async function listenMockIntegrationBroker(
   options: MockIntegrationBrokerOptions,
 ): Promise<{ url: string; close: () => Promise<void> }> {
+  traceFn("mock-ib", "listenMockIntegrationBroker", { port: options.port });
   const server = createMockIntegrationBrokerServer(options);
 
   await new Promise<void>((resolve, reject) => {

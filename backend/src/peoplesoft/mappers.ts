@@ -1,3 +1,4 @@
+import { traceFn, traceFnReturn } from "../devTrace.js";
 import type { EmployeeRecord } from "./types.js";
 
 /**
@@ -6,8 +7,9 @@ import type { EmployeeRecord } from "./types.js";
  * Course: Module 7 · CODE_PATH § two-way-mapping
  */
 export function mapIntegrationBrokerEmployee(payload: unknown): EmployeeRecord {
+  traceFn("mapper", "mapIntegrationBrokerEmployee");
   const row = payload as Record<string, unknown>;
-  return {
+  const mapped = {
     emplid: String(row.EMPLID ?? row.emplid ?? ""),
     name: String(row.NAME ?? row.name ?? ""),
     email: row.EMAIL
@@ -39,4 +41,8 @@ export function mapIntegrationBrokerEmployee(payload: unknown): EmployeeRecord {
         ? String(row.managerEmplid)
         : null,
   };
+  traceFnReturn("mapper", "mapIntegrationBrokerEmployee", {
+    emplid: mapped.emplid,
+  });
+  return mapped;
 }

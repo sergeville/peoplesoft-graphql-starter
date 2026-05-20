@@ -1,12 +1,15 @@
 {
   "name": "peoplesoft-graphql-starter",
   "private": true,
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Next.js + Apollo GraphQL BFF with mock PeopleSoft data (swap to Integration Broker REST)",
   "courseScriptIndex": "Courses/SCRIPT_COURSE_LINKS.md",
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
-    "dev:mock-ps": "concurrently -n mock-ps,backend,frontend -c magenta,blue,green \"npm run mock-ib --prefix backend\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:mock-ps": "sh scripts/dev-mock-ps-with-logs.sh",
+    "dev:mock-ps:plain": "concurrently -n mock-ps,backend,frontend -c magenta,blue,green \"npm run mock-ib --prefix backend\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "logs": "sh scripts/show-dev-logs.sh",
+    "logs:follow": "sh scripts/follow-dev-logs.sh",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "mock-ib": "npm run mock-ib --prefix backend",

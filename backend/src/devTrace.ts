@@ -24,6 +24,24 @@ export function devTrace(
   console.log(`[trace] ${layer} · ${event}${suffix}`);
 }
 
+/** Function entry — use at the top of each traced function to show the call path. */
+export function traceFn(
+  layer: string,
+  functionName: string,
+  detail?: Record<string, unknown>,
+): void {
+  devTrace(layer, `${functionName}()`, detail);
+}
+
+/** Function return — optional; use before return with result hints. */
+export function traceFnReturn(
+  layer: string,
+  functionName: string,
+  detail?: Record<string, unknown>,
+): void {
+  devTrace(layer, `${functionName} ←`, detail);
+}
+
 /** Log async work with duration on success or failure. */
 export async function devTraceAsync<T>(
   layer: string,

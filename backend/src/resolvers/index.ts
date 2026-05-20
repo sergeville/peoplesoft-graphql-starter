@@ -1,3 +1,4 @@
+import { traceFn } from "../devTrace.js";
 import type { GraphQLContext } from "../graphql/context.js";
 import type { EmployeeRecord } from "../peoplesoft/types.js";
 
@@ -26,6 +27,11 @@ export const resolvers = {
       },
       ctx: GraphQLContext,
     ): Promise<EmployeeParent[]> => {
+      traceFn("resolver", "Query.employees", {
+        asOfDate: args.asOfDate,
+        limit: args.limit,
+        offset: args.offset,
+      });
       const rows = await ctx.employeeService.listEmployees(
         args.asOfDate,
         args.limit,
@@ -42,7 +48,10 @@ export const resolvers = {
       _: unknown,
       args: { asOfDate?: string | null },
       ctx: GraphQLContext,
-    ): Promise<number> => ctx.employeeService.countEmployees(args.asOfDate),
+    ): Promise<number> => {
+      traceFn("resolver", "Query.employeeCount", { asOfDate: args.asOfDate });
+      return ctx.employeeService.countEmployees(args.asOfDate);
+    },
 
     /**
      * Why: Single-record lookup passes through to the BFF with asOfDate for historical views.
@@ -53,6 +62,10 @@ export const resolvers = {
       args: { id: string; asOfDate?: string | null },
       ctx: GraphQLContext,
     ): Promise<EmployeeParent | null> => {
+      traceFn("resolver", "Query.employee", {
+        id: args.id,
+        asOfDate: args.asOfDate,
+      });
       const row = await ctx.employeeService.getEmployee(args.id, args.asOfDate);
       if (!row) return null;
       return { ...row, asOfDate: args.asOfDate ?? null };
@@ -80,6 +93,10 @@ export const resolvers = {
       },
       ctx: GraphQLContext,
     ): Promise<EmployeeParent> => {
+      traceFn("resolver", "Mutation.createEmployee", {
+        emplid: args.input.emplid,
+        name: args.input.name,
+      });
       const row = await ctx.employeeService.createEmployee(args.input);
       return { ...row, asOfDate: args.input.effdt ?? null };
     },
@@ -104,6 +121,7 @@ export const resolvers = {
       },
       ctx: GraphQLContext,
     ): Promise<EmployeeParent> => {
+      traceFn("resolver", "Mutation.updateEmployee", { emplid: args.emplid });
       const row = await ctx.employeeService.updateEmployee(
         args.emplid,
         args.input,
@@ -119,7 +137,10 @@ export const resolvers = {
       _: unknown,
       args: { emplid: string },
       ctx: GraphQLContext,
-    ): Promise<boolean> => ctx.employeeService.deleteEmployee(args.emplid),
+    ): Promise<boolean> => {
+      traceFn("resolver", "Mutation.deleteEmployee", { emplid: args.emplid });
+      return ctx.employeeService.deleteEmployee(args.emplid);
+    },
   },
 
   Employee: {
@@ -132,6 +153,10 @@ export const resolvers = {
       _: unknown,
       ctx: GraphQLContext,
     ): Promise<EmployeeParent | null> => {
+      traceFn("resolver", "Employee.manager", {
+        emplid: parent.emplid,
+        managerEmplid: parent.managerEmplid,
+      });
       const manager = await ctx.employeeService.getManager(
         parent.managerEmplid,
         parent.asOfDate,
@@ -142,7 +167,10 @@ export const resolvers = {
     /**
      * Why: Surfaces the query's asOfDate on Employee for clients that display "effective as of" in the UI.
      */
-    effectiveDate: (parent: EmployeeParent) => parent.asOfDate ?? null,
+    effectiveDate: (parent: EmployeeParent) => {
+      traceFn("resolver", "Employee.effectiveDate", { emplid: parent.emplid });
+      return parent.asOfDate ?? null;
+    },
 
     /**
      * Why: jobHistory is loaded on demand so employee lists do not pay for segment expansion.
@@ -153,6 +181,7 @@ export const resolvers = {
       _: unknown,
       ctx: GraphQLContext,
     ) => {
+      traceFn("resolver", "Employee.jobHistory", { emplid: parent.emplid });
       return ctx.employeeService.getJobHistory(parent.emplid, parent.asOfDate);
     },
   },

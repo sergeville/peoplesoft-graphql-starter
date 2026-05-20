@@ -1,4 +1,4 @@
-import { devTrace, devTraceAsync } from "../devTrace.js";
+import { devTrace, devTraceAsync, traceFn, traceFnReturn } from "../devTrace.js";
 import {
   pickActiveEffectiveRow,
   pickEffectiveRow,
@@ -30,18 +30,28 @@ export type EmployeeServiceContext = {
 export class EmployeeService {
   constructor(private readonly ctx: EmployeeServiceContext) {}
 
-  private trace(
-    event: string,
+  private traceMethod(
+    functionName: string,
     detail?: Record<string, unknown>,
   ): void {
-    devTrace("service", event, {
+    traceFn("service", functionName, {
       dataSource: this.ctx.dataSource,
       ...detail,
     });
   }
 
-  /** Why: Mock reads default to today when asOfDate is omitted, matching GraphQL optional args. */
+  private traceMethodReturn(
+    functionName: string,
+    detail?: Record<string, unknown>,
+  ): void {
+    traceFnReturn("service", functionName, {
+      dataSource: this.ctx.dataSource,
+      ...detail,
+    });
+  }
+
   private resolveAsOfDate(asOfDate?: string | null): string {
+    traceFn("service", "resolveAsOfDate", { asOfDate });
     return asOfDate?.trim() || todayIsoDate();
   }
 
@@ -55,7 +65,7 @@ export class EmployeeService {
     limit?: number | null,
     offset?: number | null,
   ): Promise<EmployeeRecord[]> {
-    this.trace("listEmployees", { asOfDate, limit, offset });
+    this.traceMethod("listEmployees", { asOfDate, limit, offset });
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
       const start = Math.max(0, offset ?? 0);
@@ -71,7 +81,7 @@ export class EmployeeService {
         if (effective) employees.push(jobRowToEmployee(effective));
       }
 
-      this.trace("listEmployees ← mock", { count: employees.length });
+      this.traceMethodReturn("listEmployees", { count: employees.length });
       return employees;
     }
 
@@ -90,7 +100,7 @@ export class EmployeeService {
    * Course: Module 5
    */
   async countEmployees(asOfDate?: string | null): Promise<number> {
-    this.trace("countEmployees", { asOfDate });
+    this.traceMethod("countEmployees", { asOfDate });
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
       let count = 0;
@@ -98,7 +108,7 @@ export class EmployeeService {
         const rows = mockJobRowsByEmplid.get(emplid);
         if (rows && pickActiveEffectiveRow(rows, asOf)) count += 1;
       }
-      this.trace("countEmployees ← mock", { count });
+      this.traceMethodReturn("countEmployees", { count });
       return count;
     }
 
@@ -120,14 +130,14 @@ export class EmployeeService {
     emplid: string,
     asOfDate?: string | null,
   ): Promise<EmployeeRecord | null> {
-    this.trace("getEmployee", { emplid, asOfDate });
+    this.traceMethod("getEmployee", { emplid, asOfDate });
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
       const rows = mockJobRowsByEmplid.get(emplid);
       if (!rows) return null;
       const effective = pickActiveEffectiveRow(rows, asOf);
       const record = effective ? jobRowToEmployee(effective) : null;
-      this.trace("getEmployee ← mock", { found: !!record });
+      this.traceMethodReturn("getEmployee", { found: !!record });
       return record;
     }
 
@@ -149,6 +159,7 @@ export class EmployeeService {
     emplid: string,
     asOfDate?: string | null,
   ): Promise<JobRecord[]> {
+    this.traceMethod("getJobHistory", { emplid, asOfDate });
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
       const asOfMs = Date.parse(asOf);
@@ -171,6 +182,7 @@ export class EmployeeService {
     emplid: string | null,
     asOfDate?: string | null,
   ): Promise<EmployeeRecord | null> {
+    this.traceMethod("getManager", { emplid, asOfDate });
     if (!emplid) return null;
     return this.getEmployee(emplid, asOfDate);
   }
@@ -181,7 +193,7 @@ export class EmployeeService {
    * Course: Module 9
    */
   async createEmployee(input: EmployeeWriteInput): Promise<EmployeeRecord> {
-    this.trace("createEmployee", {
+    this.traceMethod("createEmployee", {
       emplid: input.emplid,
       name: input.name,
       effdt: input.effdt,
@@ -207,7 +219,7 @@ export class EmployeeService {
     emplid: string,
     input: EmployeeWriteInput,
   ): Promise<EmployeeRecord> {
-    this.trace("updateEmployee", { emplid, effdt: input.effdt });
+    this.traceMethod("updateEmployee", { emplid, effdt: input.effdt });
     if (this.ctx.dataSource === "mock") {
       return updateEmployeeInStore(emplid, input);
     }
@@ -226,10 +238,10 @@ export class EmployeeService {
    * Course: Module 9 · CODE_PATH § ps-terminate-vs-delete
    */
   async deleteEmployee(emplid: string): Promise<boolean> {
-    this.trace("deleteEmployee (terminate)", { emplid });
+    this.traceMethod("deleteEmployee", { emplid });
     if (this.ctx.dataSource === "mock") {
       const ok = deleteEmployeeFromStore(emplid);
-      this.trace("deleteEmployee ← mock terminate", { emplid, ok });
+      this.traceMethodReturn("deleteEmployee", { emplid, ok });
       return ok;
     }
     const client = createIntegrationBrokerClientFromEnv();
@@ -248,11 +260,12 @@ export class EmployeeService {
  * Course: Module 5
  */
 export function createEmployeeServiceFromEnv(): EmployeeService {
+  traceFn("service", "createEmployeeServiceFromEnv");
   const raw = process.env.PEOPLESOFT_DATA_SOURCE ?? "mock";
   const dataSource =
     raw === "integration-broker" ? "integration-broker" : "mock";
 
   const service = new EmployeeService({ dataSource });
-  devTrace("boot", "EmployeeService", { dataSource });
+  traceFnReturn("service", "createEmployeeServiceFromEnv", { dataSource });
   return service;
 }

@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { jobRowsToCsv } from "./csvEmployees.js";
-import { devTrace } from "../devTrace.js";
+import { traceFn, traceFnReturn } from "../devTrace.js";
 import {
   compareEffectiveRows,
   isActiveHrStatus,
@@ -35,17 +35,20 @@ let allJobRows: JobRow[] = [];
  * Course: Module 6 · Mode A
  */
 export function initEmployeeStore(rows: JobRow[]): void {
+  traceFn("store", "initEmployeeStore", { rowCount: rows.length });
   allJobRows = [...rows];
   refreshIndex();
 }
 
 /** Why: Rebuild EMPLID index after terminate append so list/count queries stay O(1) without rescanning all rows. */
 function refreshIndex(): void {
+  traceFn("store", "refreshIndex", { rowCount: allJobRows.length });
   initMockJobIndex(allJobRows);
 }
 
 /** Why: Mirror in-memory mutations back to the course CSV so mock Mode A survives restarts like a tiny PS file. */
 function persistToCsv(): void {
+  traceFn("store", "persistToCsv");
   const csvPath = resolveEmployeeCsvPath();
   mkdirSync(path.dirname(csvPath), { recursive: true });
   writeFileSync(csvPath, `${jobRowsToCsv(allJobRows)}\n`, "utf8");
@@ -53,6 +56,7 @@ function persistToCsv(): void {
 
 /** Why: Auto-assign EMPLID when GraphQL create omits id, matching PS key generation without manual counters. */
 function nextEmplid(): string {
+  traceFn("store", "nextEmplid");
   let max = 100000;
   for (const row of allJobRows) {
     const numeric = Number.parseInt(row.emplid, 10);
@@ -63,6 +67,7 @@ function nextEmplid(): string {
 
 /** Why: All store ops are per-EMPLID eff-dated slices; central filter avoids duplicating index lookup rules. */
 function rowsFor(emplid: string): JobRow[] {
+  traceFn("store", "rowsFor", { emplid });
   return allJobRows.filter((row) => row.emplid === emplid);
 }
 
@@ -72,6 +77,7 @@ function rowsFor(emplid: string): JobRow[] {
  * Course: Module 9
  */
 function upsertLatestRow(emplid: string, patch: Partial<JobRow>): EmployeeRecord {
+  traceFn("store", "upsertLatestRow", { emplid, effdt: patch.effdt });
   const rows = rowsFor(emplid);
   if (rows.length === 0) {
     throw new Error(`Employee not found: ${emplid}`);
@@ -103,7 +109,7 @@ function upsertLatestRow(emplid: string, patch: Partial<JobRow>): EmployeeRecord
  * Course: Module 9 · Mode A
  */
 export function createEmployeeInStore(input: EmployeeWriteInput): EmployeeRecord {
-  devTrace("store", "createEmployeeInStore", {
+  traceFn("store", "createEmployeeInStore", {
     emplid: input.emplid,
     effdt: input.effdt,
   });
@@ -127,7 +133,7 @@ export function createEmployeeInStore(input: EmployeeWriteInput): EmployeeRecord
 
   allJobRows.push(row);
   persistToCsv();
-  devTrace("store", "createEmployeeInStore done", { emplid, effdt: row.effdt });
+  traceFnReturn("store", "createEmployeeInStore", { emplid, effdt: row.effdt });
   return jobRowToEmployee(row);
 }
 
@@ -141,7 +147,7 @@ export function updateEmployeeInStore(
   input: EmployeeWriteInput,
 ): EmployeeRecord {
   const id = emplid.trim();
-  devTrace("store", "updateEmployeeInStore", { emplid: id, effdt: input.effdt });
+  traceFn("store", "updateEmployeeInStore", { emplid: id, effdt: input.effdt });
   return upsertLatestRow(id, {
     name: input.name.trim(),
     email: input.email?.trim() || null,
@@ -164,10 +170,10 @@ export function terminateEmployeeInStore(
   effdt?: string | null,
 ): boolean {
   const id = emplid.trim();
-  devTrace("store", "terminateEmployeeInStore", { emplid: id, effdt });
+  traceFn("store", "terminateEmployeeInStore", { emplid: id, effdt });
   const rows = rowsFor(id);
   if (rows.length === 0) {
-    devTrace("store", "terminateEmployeeInStore skipped", {
+    traceFnReturn("store", "terminateEmployeeInStore", {
       emplid: id,
       reason: "not found",
     });
@@ -176,7 +182,7 @@ export function terminateEmployeeInStore(
 
   const latest = [...rows].sort(compareEffectiveRows)[0]!;
   if (!isActiveHrStatus(latest.hrStatus)) {
-    devTrace("store", "terminateEmployeeInStore skipped", {
+    traceFnReturn("store", "terminateEmployeeInStore", {
       emplid: id,
       reason: "already inactive",
     });
@@ -198,7 +204,7 @@ export function terminateEmployeeInStore(
   allJobRows.push(termRow);
   persistToCsv();
   refreshIndex();
-  devTrace("store", "terminateEmployeeInStore done", {
+  traceFnReturn("store", "terminateEmployeeInStore", {
     emplid: id,
     effdt: termEffdt,
     effseq: termRow.effseq,
@@ -213,6 +219,7 @@ export function terminateEmployeeInStore(
  * Course: Module 9
  */
 export function deleteEmployeeFromStore(emplid: string): boolean {
+  traceFn("store", "deleteEmployeeFromStore", { emplid });
   return terminateEmployeeInStore(emplid);
 }
 
@@ -225,7 +232,9 @@ export function getEmployeeFromStore(
   emplid: string,
   asOfDate?: string | null,
 ): EmployeeRecord | null {
+  traceFn("store", "getEmployeeFromStore", { emplid, asOfDate });
   const rows = rowsFor(emplid);
   const effective = pickActiveEffectiveRow(rows, asOfDate?.trim() || todayIsoDate());
+  traceFnReturn("store", "getEmployeeFromStore", { emplid, found: !!effective });
   return effective ? jobRowToEmployee(effective) : null;
 }

@@ -1,3 +1,4 @@
+import { traceFn, traceFnReturn } from "../devTrace.js";
 import { compareEffectiveRows } from "./effectiveDating.js";
 import type { JobRecord, JobRow } from "./types.js";
 
@@ -7,6 +8,7 @@ import type { JobRecord, JobRow } from "./types.js";
  * Course: Module 6
  */
 export function jobRowToEmployee(row: JobRow) {
+  traceFn("jobHistory", "jobRowToEmployee", { emplid: row.emplid });
   return {
     emplid: row.emplid,
     name: row.name,
@@ -24,9 +26,10 @@ export function jobRowToEmployee(row: JobRow) {
  * Course: Module 5/10
  */
 export function buildJobHistory(rows: JobRow[]): JobRecord[] {
+  traceFn("jobHistory", "buildJobHistory", { rowCount: rows.length });
   const sorted = [...rows].sort(compareEffectiveRows);
 
-  return sorted.map((row, index) => {
+  const segments = sorted.map((row, index) => {
     const older = sorted[index + 1];
     const endDate = older ? older.effdt : null;
     return {
@@ -36,4 +39,6 @@ export function buildJobHistory(rows: JobRow[]): JobRecord[] {
       salary: row.salary,
     };
   });
+  traceFnReturn("jobHistory", "buildJobHistory", { segments: segments.length });
+  return segments;
 }

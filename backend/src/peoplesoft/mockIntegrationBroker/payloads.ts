@@ -1,3 +1,4 @@
+import { traceFn, traceFnReturn } from "../../devTrace.js";
 import { pickActiveEffectiveRow, todayIsoDate } from "../effectiveDating.js";
 import { mockEmplids, mockJobRowsByEmplid } from "../mockJobIndex.js";
 import type { JobRow } from "../types.js";
@@ -20,6 +21,7 @@ export type PsBrokerEmployeeRow = {
  * Course: Module 7
  */
 export function jobRowToPsBrokerRow(row: JobRow): PsBrokerEmployeeRow {
+  traceFn("payloads", "jobRowToPsBrokerRow", { emplid: row.emplid });
   return {
     EMPLID: row.emplid,
     NAME: row.name,
@@ -42,6 +44,7 @@ export function listPsBrokerEmployees(
   limit?: number | null,
   offset?: number | null,
 ): PsBrokerEmployeeRow[] {
+  traceFn("payloads", "listPsBrokerEmployees", { asOfDate, limit, offset });
   const asOf = asOfDate?.trim() || todayIsoDate();
   const start = Math.max(0, offset ?? 0);
   const end =
@@ -56,6 +59,7 @@ export function listPsBrokerEmployees(
     if (effective) rows.push(jobRowToPsBrokerRow(effective));
   }
 
+  traceFnReturn("payloads", "listPsBrokerEmployees", { count: rows.length });
   return rows;
 }
 
@@ -64,12 +68,14 @@ export function listPsBrokerEmployees(
  * Course: Module 7
  */
 export function countPsBrokerEmployees(asOfDate?: string | null): number {
+  traceFn("payloads", "countPsBrokerEmployees", { asOfDate });
   const asOf = asOfDate?.trim() || todayIsoDate();
   let count = 0;
   for (const emplid of mockEmplids) {
     const jobRows = mockJobRowsByEmplid.get(emplid);
     if (jobRows && pickActiveEffectiveRow(jobRows, asOf)) count += 1;
   }
+  traceFnReturn("payloads", "countPsBrokerEmployees", { count });
   return count;
 }
 
@@ -82,10 +88,12 @@ export function getPsBrokerEmployee(
   emplid: string,
   asOfDate?: string | null,
 ): PsBrokerEmployeeRow | null {
+  traceFn("payloads", "getPsBrokerEmployee", { emplid, asOfDate });
   const asOf = asOfDate?.trim() || todayIsoDate();
   const jobRows = mockJobRowsByEmplid.get(emplid);
   if (!jobRows) return null;
   const effective = pickActiveEffectiveRow(jobRows, asOf);
+  traceFnReturn("payloads", "getPsBrokerEmployee", { found: !!effective });
   return effective ? jobRowToPsBrokerRow(effective) : null;
 }
 
@@ -99,6 +107,7 @@ export function psBrokerListResponse(
   total: number,
   offset: number,
 ) {
+  traceFn("payloads", "psBrokerListResponse", { rowCount: rows.length, total, offset });
   return {
     status: "success",
     rowCount: rows.length,

@@ -1,3 +1,5 @@
+import { traceFn, traceFnReturn } from "../devTrace.js";
+
 /** Rows with PeopleSoft-style effective date (and optional sequence). */
 export type EffectiveDated = {
   effdt: string;
@@ -13,13 +15,16 @@ export function pickEffectiveRow<T extends EffectiveDated>(
   rows: T[],
   asOfDate: string,
 ): T | null {
+  traceFn("effdate", "pickEffectiveRow", { asOfDate, rowCount: rows.length });
   const asOfMs = Date.parse(asOfDate);
   if (Number.isNaN(asOfMs)) return null;
 
   const eligible = rows.filter((row) => Date.parse(row.effdt) <= asOfMs);
   if (eligible.length === 0) return null;
 
-  return [...eligible].sort(compareEffectiveRows)[0] ?? null;
+  const picked = [...eligible].sort(compareEffectiveRows)[0] ?? null;
+  traceFnReturn("effdate", "pickEffectiveRow", { picked: !!picked });
+  return picked;
 }
 
 /**
@@ -28,6 +33,7 @@ export function pickEffectiveRow<T extends EffectiveDated>(
  * Course: Module 6
  */
 export function compareEffectiveRows<T extends EffectiveDated>(a: T, b: T): number {
+  traceFn("effdate", "compareEffectiveRows");
   const dateDiff = Date.parse(b.effdt) - Date.parse(a.effdt);
   if (dateDiff !== 0) return dateDiff;
   return (b.effseq ?? 0) - (a.effseq ?? 0);
@@ -38,6 +44,7 @@ export function compareEffectiveRows<T extends EffectiveDated>(a: T, b: T): numb
  * and IB paths aligned without each caller duplicating date formatting.
  */
 export function todayIsoDate(): string {
+  traceFn("effdate", "todayIsoDate");
   return new Date().toISOString().slice(0, 10);
 }
 
@@ -49,6 +56,7 @@ const INACTIVE_HR_STATUSES = new Set(["I", "T"]);
  * Course: Module 6
  */
 export function isActiveHrStatus(hrStatus?: string | null): boolean {
+  traceFn("effdate", "isActiveHrStatus", { hrStatus });
   const code = (hrStatus?.trim() || "A").toUpperCase();
   return !INACTIVE_HR_STATUSES.has(code);
 }
@@ -62,7 +70,12 @@ export function pickActiveEffectiveRow<T extends EffectiveDated & { hrStatus?: s
   rows: T[],
   asOfDate: string,
 ): T | null {
+  traceFn("effdate", "pickActiveEffectiveRow", { asOfDate, rowCount: rows.length });
   const row = pickEffectiveRow(rows, asOfDate);
-  if (!row || !isActiveHrStatus(row.hrStatus)) return null;
+  if (!row || !isActiveHrStatus(row.hrStatus)) {
+    traceFnReturn("effdate", "pickActiveEffectiveRow", { active: false });
+    return null;
+  }
+  traceFnReturn("effdate", "pickActiveEffectiveRow", { active: true });
   return row;
 }

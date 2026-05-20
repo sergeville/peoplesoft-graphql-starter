@@ -134,18 +134,36 @@ PS_PASSWORD=demo
 
 Watch terminals when you use the UI (`npm run dev:mock-ps` labels them **`[backend]`** and **`[mock-ps]`**).
 
-**Dev trace (follow the full path):** Filter logs with **`[trace]`**. Enabled by default in dev (`NODE_ENV` ≠ `production`). Set `DEV_TRACE=0` in `backend/.env` to disable.
+**Dev trace (follow every function on the path):** Filter logs with **`[trace]`**. Each function logs **`layer · functionName()`** on entry and optional **`functionName() ←`** on return. Enabled by default in dev (`NODE_ENV` ≠ `production`). Set `DEV_TRACE=0` in `backend/.env` to disable.
+
+| Layer | File(s) |
+|-------|---------|
+| `graphql` | `graphql/devTracePlugin.ts` |
+| `resolver` | `resolvers/index.ts` |
+| `service` | `services/employeeService.ts` |
+| `integration-broker` | `peoplesoft/integrationBrokerClient.ts` |
+| `mock-ib` | `peoplesoft/mockIntegrationBroker/server.ts` |
+| `payloads` | `peoplesoft/mockIntegrationBroker/payloads.ts` |
+| `store` | `peoplesoft/employeeStore.ts` |
+| `effdate` | `peoplesoft/effectiveDating.ts` |
+| `mapper` | `peoplesoft/mappers.ts` |
+| `jobHistory` | `peoplesoft/jobHistory.ts` |
 
 ```text
 [trace] graphql · request — {"operation":"GetEmployeesPage",...}
-[trace] service · listEmployees — {"dataSource":"integration-broker",...}
-[trace] integration-broker · HTTP → — {"method":"GET","url":"http://localhost:4100/employees?..."}
-[trace] mock-ib · GET /employees?limit=50&offset=0
-[trace] store · terminateEmployeeInStore done — {"emplid":"100099","hrStatus":"I",...}
+[trace] resolver · Query.employees() — {"limit":50,"offset":0}
+[trace] service · listEmployees() — {"asOfDate":null,"limit":50,"offset":0}
+[trace] integration-broker · fetchEmployees() — {"limit":50,"offset":0}
+[trace] integration-broker · request() — {"method":"GET","path":"/employees"}
+[trace] mock-ib · handleRequest() — {"method":"GET","path":"/employees?limit=50"}
+[trace] mock-ib · readPagination()
+[trace] payloads · listPsBrokerEmployees() — {"limit":50,"offset":0}
+[trace] effdate · pickActiveEffectiveRow() — {"rowCount":3}
+[trace] payloads · listPsBrokerEmployees() ← — {"count":50}
 [trace] graphql · response — {"operation":"GetEmployeesPage","ms":42}
 ```
 
-Legacy labels may still appear; **`[trace]`** is the structured path from GraphQL → service → store / IB.
+**Console + files:** `npm run dev:mock-ps` tees **`[mock-ps]`**, **`[backend]`**, **`[frontend]`** to `logs/*.log` and the terminal. Tail with `npm run logs` or `npm run logs:follow`. Plain stack (no log files): `npm run dev:mock-ps:plain`.
 
 ---
 

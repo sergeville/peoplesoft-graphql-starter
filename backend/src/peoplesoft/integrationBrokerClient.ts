@@ -1,4 +1,4 @@
-import { devTrace } from "../devTrace.js";
+import { devTrace, traceFn, traceFnReturn } from "../devTrace.js";
 import { todayIsoDate } from "./effectiveDating.js";
 import { mapIntegrationBrokerEmployee } from "./mappers.js";
 import type { EmployeeRecord } from "./types.js";
@@ -38,6 +38,7 @@ export class IntegrationBrokerClient {
 
   /** Why: Apps Script cannot host true REST paths; detect once so URL and verb routing stay in one place. */
   private isGoogleAppsScript(): boolean {
+    traceFn("integration-broker", "isGoogleAppsScript");
     return this.config.baseUrl.includes("script.google.com");
   }
 
@@ -55,6 +56,7 @@ export class IntegrationBrokerClient {
       method?: string;
     },
   ): string {
+    traceFn("integration-broker", "buildUrl", { path });
     const cleanPath = path.replace(/^\//, "");
     const search = new URLSearchParams();
 
@@ -88,6 +90,7 @@ export class IntegrationBrokerClient {
 
   /** Why: PS IB expects Basic auth on every call; one helper keeps credentials out of each method. */
   private authHeader(): string {
+    traceFn("integration-broker", "authHeader");
     return `Basic ${Buffer.from(
       `${this.config.username}:${this.config.password}`,
     ).toString("base64")}`;
@@ -109,6 +112,10 @@ export class IntegrationBrokerClient {
       };
     },
   ): Promise<Response> {
+    traceFn("integration-broker", "request", {
+      path,
+      method: init.method ?? "GET",
+    });
     const { params, ...fetchInit } = init;
     const url = this.buildUrl(path, params);
     const method = fetchInit.method ?? "GET";
@@ -139,6 +146,7 @@ export class IntegrationBrokerClient {
     emplid: string,
     asOfDate?: string | null,
   ): Promise<EmployeeRecord | null> {
+    traceFn("integration-broker", "fetchEmployee", { emplid, asOfDate });
     // TODO: replace path with your IB REST resource, e.g. /EMPLOYEE/v1/{emplid}
     const response = await this.request(
       `/employee/${encodeURIComponent(emplid)}`,
@@ -166,6 +174,7 @@ export class IntegrationBrokerClient {
     limit?: number | null,
     offset?: number | null,
   ): Promise<EmployeeRecord[]> {
+    traceFn("integration-broker", "fetchEmployees", { asOfDate, limit, offset });
     const response = await this.request("/employees", {
       method: "GET",
       params: { asOfDate, limit, offset },
@@ -195,6 +204,7 @@ export class IntegrationBrokerClient {
    * Course: Module 7 · Mode B
    */
   async countEmployees(asOfDate?: string | null): Promise<number> {
+    traceFn("integration-broker", "countEmployees", { asOfDate });
     const response = await this.request("/employees/count", {
       method: "GET",
       params: { asOfDate },
@@ -223,6 +233,7 @@ export class IntegrationBrokerClient {
   async createEmployee(
     input: IntegrationBrokerWriteInput,
   ): Promise<EmployeeRecord> {
+    traceFn("integration-broker", "createEmployee", { emplid: input.emplid });
     const response = await this.request("/employees", {
       method: "POST",
       body: JSON.stringify(input),
@@ -246,6 +257,7 @@ export class IntegrationBrokerClient {
     emplid: string,
     input: IntegrationBrokerWriteInput,
   ): Promise<EmployeeRecord> {
+    traceFn("integration-broker", "updateEmployee", { emplid });
     const path = `/employee/${encodeURIComponent(emplid)}`;
     const response = this.isGoogleAppsScript()
       ? await this.request(path, {
@@ -273,6 +285,7 @@ export class IntegrationBrokerClient {
    * Course: Module 9 · CODE_PATH § ps-terminate-vs-delete
    */
   async deleteEmployee(emplid: string): Promise<boolean> {
+    traceFn("integration-broker", "deleteEmployee", { emplid });
     const path = `/employee/${encodeURIComponent(emplid)}`;
     const body = JSON.stringify({
       effdt: todayIsoDate(),
@@ -307,6 +320,7 @@ export class IntegrationBrokerClient {
  * Course: Module 7 · Mode B
  */
 export function createIntegrationBrokerClientFromEnv(): IntegrationBrokerClient {
+  traceFn("integration-broker", "createIntegrationBrokerClientFromEnv");
   const baseUrl = process.env.PS_BASE_URL;
   const username = process.env.PS_USERNAME;
   const password = process.env.PS_PASSWORD;
