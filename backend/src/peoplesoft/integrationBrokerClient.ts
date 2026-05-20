@@ -1,3 +1,4 @@
+import { devTrace } from "../devTrace.js";
 import { todayIsoDate } from "./effectiveDating.js";
 import { mapIntegrationBrokerEmployee } from "./mappers.js";
 import type { EmployeeRecord } from "./types.js";
@@ -110,9 +111,9 @@ export class IntegrationBrokerClient {
   ): Promise<Response> {
     const { params, ...fetchInit } = init;
     const url = this.buildUrl(path, params);
-    console.log(`[Integration Broker] ${fetchInit.method ?? "GET"} ${url}`);
-
-    return fetch(url, {
+    const method = fetchInit.method ?? "GET";
+    devTrace("integration-broker", "HTTP →", { method, url });
+    const response = await fetch(url, {
       ...fetchInit,
       headers: {
         Authorization: this.authHeader(),
@@ -121,6 +122,12 @@ export class IntegrationBrokerClient {
         ...fetchInit.headers,
       },
     });
+    devTrace("integration-broker", "HTTP ←", {
+      method,
+      url,
+      status: response.status,
+    });
+    return response;
   }
 
   /**

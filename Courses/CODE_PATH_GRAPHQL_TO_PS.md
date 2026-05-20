@@ -132,15 +132,20 @@ PS_USERNAME=demo
 PS_PASSWORD=demo
 ```
 
-Watch terminals when you use the UI (`npm run dev:mock-ps` labels them **`[backend]`** and **`[mock-ps]`**):
+Watch terminals when you use the UI (`npm run dev:mock-ps` labels them **`[backend]`** and **`[mock-ps]`**).
+
+**Dev trace (follow the full path):** Filter logs with **`[trace]`**. Enabled by default in dev (`NODE_ENV` ≠ `production`). Set `DEV_TRACE=0` in `backend/.env` to disable.
 
 ```text
-[backend]  [Integration Broker] GET http://localhost:4100/employees?limit=50&offset=0
-[mock-ps]  [Mock PS IB] GET /employees?limit=50&offset=0
-[mock-ps]  [Mock PS IB] POST /employees
-[mock-ps]  [Mock PS IB] PUT /employee/100002
-[mock-ps]  [Mock PS IB] DELETE /employee/100099   ← alias for terminate (eff-dated row, hr_status=I)
+[trace] graphql · request — {"operation":"GetEmployeesPage",...}
+[trace] service · listEmployees — {"dataSource":"integration-broker",...}
+[trace] integration-broker · HTTP → — {"method":"GET","url":"http://localhost:4100/employees?..."}
+[trace] mock-ib · GET /employees?limit=50&offset=0
+[trace] store · terminateEmployeeInStore done — {"emplid":"100099","hrStatus":"I",...}
+[trace] graphql · response — {"operation":"GetEmployeesPage","ms":42}
 ```
+
+Legacy labels may still appear; **`[trace]`** is the structured path from GraphQL → service → store / IB.
 
 ---
 

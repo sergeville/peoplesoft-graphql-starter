@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { jobRowsToCsv } from "./csvEmployees.js";
+import { devTrace } from "../devTrace.js";
 import {
   compareEffectiveRows,
   isActiveHrStatus,
@@ -102,6 +103,10 @@ function upsertLatestRow(emplid: string, patch: Partial<JobRow>): EmployeeRecord
  * Course: Module 9 · Mode A
  */
 export function createEmployeeInStore(input: EmployeeWriteInput): EmployeeRecord {
+  devTrace("store", "createEmployeeInStore", {
+    emplid: input.emplid,
+    effdt: input.effdt,
+  });
   const emplid = input.emplid?.trim() || nextEmplid();
   if (rowsFor(emplid).length > 0) {
     throw new Error(`Employee already exists: ${emplid}`);
@@ -122,6 +127,7 @@ export function createEmployeeInStore(input: EmployeeWriteInput): EmployeeRecord
 
   allJobRows.push(row);
   persistToCsv();
+  devTrace("store", "createEmployeeInStore done", { emplid, effdt: row.effdt });
   return jobRowToEmployee(row);
 }
 
@@ -135,6 +141,7 @@ export function updateEmployeeInStore(
   input: EmployeeWriteInput,
 ): EmployeeRecord {
   const id = emplid.trim();
+  devTrace("store", "updateEmployeeInStore", { emplid: id, effdt: input.effdt });
   return upsertLatestRow(id, {
     name: input.name.trim(),
     email: input.email?.trim() || null,
@@ -157,11 +164,24 @@ export function terminateEmployeeInStore(
   effdt?: string | null,
 ): boolean {
   const id = emplid.trim();
+  devTrace("store", "terminateEmployeeInStore", { emplid: id, effdt });
   const rows = rowsFor(id);
-  if (rows.length === 0) return false;
+  if (rows.length === 0) {
+    devTrace("store", "terminateEmployeeInStore skipped", {
+      emplid: id,
+      reason: "not found",
+    });
+    return false;
+  }
 
   const latest = [...rows].sort(compareEffectiveRows)[0]!;
-  if (!isActiveHrStatus(latest.hrStatus)) return false;
+  if (!isActiveHrStatus(latest.hrStatus)) {
+    devTrace("store", "terminateEmployeeInStore skipped", {
+      emplid: id,
+      reason: "already inactive",
+    });
+    return false;
+  }
 
   const termEffdt = effdt?.trim() || todayIsoDate();
   const sameDaySeq = rows
@@ -178,6 +198,12 @@ export function terminateEmployeeInStore(
   allJobRows.push(termRow);
   persistToCsv();
   refreshIndex();
+  devTrace("store", "terminateEmployeeInStore done", {
+    emplid: id,
+    effdt: termEffdt,
+    effseq: termRow.effseq,
+    hrStatus: termRow.hrStatus,
+  });
   return true;
 }
 

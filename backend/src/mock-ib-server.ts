@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import { bootstrapMockData } from "./peoplesoft/bootstrapMockData.js";
 import { mockEmployeeCount } from "./peoplesoft/mockJobIndex.js";
+import { isDevTraceEnabled } from "./devTrace.js";
 import { listenMockIntegrationBroker } from "./peoplesoft/mockIntegrationBroker/server.js";
 
 await bootstrapMockData();
@@ -21,6 +22,9 @@ console.log(`  Dataset: ${mockEmployeeCount.toLocaleString()} employees (MOCK_EM
 console.log(`  GET ${url}/employees`);
 console.log(`  GET ${url}/employee/100001`);
 console.log(`  Basic auth: ${username} / (password in MOCK_IB_PASSWORD)`);
+if (isDevTraceEnabled()) {
+  console.log("  Dev trace: ON — filter logs with [trace] mock-ib (pairs with backend [trace])");
+}
 
 const shutdown = async () => {
   await close();

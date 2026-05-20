@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { URL } from "node:url";
 
+import { devTrace } from "../../devTrace.js";
 import {
   createEmployeeInStore,
   deleteEmployeeFromStore,
@@ -100,7 +101,7 @@ function sendText(res: ServerResponse, status: number, message: string) {
 
 /** Why: Request logging helps trace GraphQL→IB→store flow during local Mode B debugging. */
 function logRequest(method: string, path: string) {
-  console.log(`[Mock PS IB] ${method} ${path}`);
+  devTrace("mock-ib", `${method} ${path}`);
 }
 
 /** Why: POST/PUT bodies must be parsed once into a neutral object before PS field mapping. */

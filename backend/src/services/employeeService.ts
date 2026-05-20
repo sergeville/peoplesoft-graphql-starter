@@ -1,3 +1,4 @@
+import { devTrace, devTraceAsync } from "../devTrace.js";
 import {
   pickActiveEffectiveRow,
   pickEffectiveRow,
@@ -29,6 +30,16 @@ export type EmployeeServiceContext = {
 export class EmployeeService {
   constructor(private readonly ctx: EmployeeServiceContext) {}
 
+  private trace(
+    event: string,
+    detail?: Record<string, unknown>,
+  ): void {
+    devTrace("service", event, {
+      dataSource: this.ctx.dataSource,
+      ...detail,
+    });
+  }
+
   /** Why: Mock reads default to today when asOfDate is omitted, matching GraphQL optional args. */
   private resolveAsOfDate(asOfDate?: string | null): string {
     return asOfDate?.trim() || todayIsoDate();
@@ -44,6 +55,7 @@ export class EmployeeService {
     limit?: number | null,
     offset?: number | null,
   ): Promise<EmployeeRecord[]> {
+    this.trace("listEmployees", { asOfDate, limit, offset });
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
       const start = Math.max(0, offset ?? 0);
@@ -59,11 +71,17 @@ export class EmployeeService {
         if (effective) employees.push(jobRowToEmployee(effective));
       }
 
+      this.trace("listEmployees ← mock", { count: employees.length });
       return employees;
     }
 
     const client = createIntegrationBrokerClientFromEnv();
-    return client.fetchEmployees(asOfDate, limit, offset);
+    return devTraceAsync(
+      "service",
+      "listEmployees",
+      { path: "integration-broker" },
+      () => client.fetchEmployees(asOfDate, limit, offset),
+    );
   }
 
   /**
@@ -72,6 +90,7 @@ export class EmployeeService {
    * Course: Module 5
    */
   async countEmployees(asOfDate?: string | null): Promise<number> {
+    this.trace("countEmployees", { asOfDate });
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
       let count = 0;
@@ -79,11 +98,17 @@ export class EmployeeService {
         const rows = mockJobRowsByEmplid.get(emplid);
         if (rows && pickActiveEffectiveRow(rows, asOf)) count += 1;
       }
+      this.trace("countEmployees ← mock", { count });
       return count;
     }
 
     const client = createIntegrationBrokerClientFromEnv();
-    return client.countEmployees(asOfDate);
+    return devTraceAsync(
+      "service",
+      "countEmployees",
+      { path: "integration-broker" },
+      () => client.countEmployees(asOfDate),
+    );
   }
 
   /**
@@ -95,16 +120,24 @@ export class EmployeeService {
     emplid: string,
     asOfDate?: string | null,
   ): Promise<EmployeeRecord | null> {
+    this.trace("getEmployee", { emplid, asOfDate });
     if (this.ctx.dataSource === "mock") {
       const asOf = this.resolveAsOfDate(asOfDate);
       const rows = mockJobRowsByEmplid.get(emplid);
       if (!rows) return null;
       const effective = pickActiveEffectiveRow(rows, asOf);
-      return effective ? jobRowToEmployee(effective) : null;
+      const record = effective ? jobRowToEmployee(effective) : null;
+      this.trace("getEmployee ← mock", { found: !!record });
+      return record;
     }
 
     const client = createIntegrationBrokerClientFromEnv();
-    return client.fetchEmployee(emplid, asOfDate);
+    return devTraceAsync(
+      "service",
+      "getEmployee",
+      { emplid, path: "integration-broker" },
+      () => client.fetchEmployee(emplid, asOfDate),
+    );
   }
 
   /**
@@ -148,11 +181,21 @@ export class EmployeeService {
    * Course: Module 9
    */
   async createEmployee(input: EmployeeWriteInput): Promise<EmployeeRecord> {
+    this.trace("createEmployee", {
+      emplid: input.emplid,
+      name: input.name,
+      effdt: input.effdt,
+    });
     if (this.ctx.dataSource === "mock") {
       return createEmployeeInStore(input);
     }
     const client = createIntegrationBrokerClientFromEnv();
-    return client.createEmployee(input);
+    return devTraceAsync(
+      "service",
+      "createEmployee",
+      { path: "integration-broker" },
+      () => client.createEmployee(input),
+    );
   }
 
   /**
@@ -164,11 +207,17 @@ export class EmployeeService {
     emplid: string,
     input: EmployeeWriteInput,
   ): Promise<EmployeeRecord> {
+    this.trace("updateEmployee", { emplid, effdt: input.effdt });
     if (this.ctx.dataSource === "mock") {
       return updateEmployeeInStore(emplid, input);
     }
     const client = createIntegrationBrokerClientFromEnv();
-    return client.updateEmployee(emplid, input);
+    return devTraceAsync(
+      "service",
+      "updateEmployee",
+      { emplid, path: "integration-broker" },
+      () => client.updateEmployee(emplid, input),
+    );
   }
 
   /**
@@ -177,11 +226,19 @@ export class EmployeeService {
    * Course: Module 9 · CODE_PATH § ps-terminate-vs-delete
    */
   async deleteEmployee(emplid: string): Promise<boolean> {
+    this.trace("deleteEmployee (terminate)", { emplid });
     if (this.ctx.dataSource === "mock") {
-      return deleteEmployeeFromStore(emplid);
+      const ok = deleteEmployeeFromStore(emplid);
+      this.trace("deleteEmployee ← mock terminate", { emplid, ok });
+      return ok;
     }
     const client = createIntegrationBrokerClientFromEnv();
-    return client.deleteEmployee(emplid);
+    return devTraceAsync(
+      "service",
+      "deleteEmployee",
+      { emplid, path: "integration-broker", method: "PUT terminate" },
+      () => client.deleteEmployee(emplid),
+    );
   }
 }
 
@@ -195,5 +252,7 @@ export function createEmployeeServiceFromEnv(): EmployeeService {
   const dataSource =
     raw === "integration-broker" ? "integration-broker" : "mock";
 
-  return new EmployeeService({ dataSource });
+  const service = new EmployeeService({ dataSource });
+  devTrace("boot", "EmployeeService", { dataSource });
+  return service;
 }
