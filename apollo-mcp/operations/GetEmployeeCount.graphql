@@ -1,0 +1,4 @@
+# Return total employee count (respects asOfDate when provided).
+query GetEmployeeCount($asOfDate: String) {
+  employeeCount(asOfDate: $asOfDate)
+}

@@ -1,0 +1,16 @@
+# List employees with pagination; optional asOfDate for effective-dated rows.
+query GetEmployeesPage($asOfDate: String, $limit: Int, $offset: Int) {
+  employeeCount(asOfDate: $asOfDate)
+  employees(asOfDate: $asOfDate, limit: $limit, offset: $offset) {
+    emplid
+    name
+    email
+    department
+    position
+    salary
+    managerEmplid
+    manager {
+      name
+    }
+  }
+}

@@ -1,5 +1,7 @@
 # Manager SSO → GraphQL → Integration Broker (row security)
 
+**Course:** [COURSE.md § Module 11](./COURSE.md#module-11--real-peoplesoft--row-security) · **Compare dev (no RLS):** [`npm run dev:mock-ps`](../package.json) · **Scripts index:** [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md#by-supplemental-doc-doc--script)
+
 Concrete target architecture for production: end users see only the rows PeopleSoft allows for **their** operator ID.
 
 ## End-to-end flow
@@ -14,7 +16,7 @@ Concrete target architecture for production: end users see only the rows PeopleS
                                      ┌──────────────────┐
                                      │ Apollo BFF :4000 │
                                      │ EmployeeService  │
-                                     │ + auth middleware│
+                                     │ + auth middleware (target)│
                                      └────────┬─────────┘
                                               │ REST + PS user context
                                               ▼
@@ -285,15 +287,19 @@ sequenceDiagram
 
 ## Mock vs production
 
-| Environment | Data | Row security |
-|-------------|------|----------------|
-| Dev `mock` + CSV | Local file | Simulated (you edit CSV) |
-| Dev `dev:mock-ps` | Mock IB :4100 | None (demo only) |
-| Prod | Real IB | **PeopleSoft operator + roles** |
+| Environment | Command | Data | Row security |
+|-------------|---------|------|----------------|
+| Dev `mock` + CSV | [`npm run dev`](../package.json) | [`employees.csv`](../backend/data/employees.csv) | Simulated (you edit CSV) |
+| Dev mock IB | [`npm run dev:mock-ps`](../package.json) → [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts) | Mock :4100 | None (demo only) |
+| Prod | Real `PS_BASE_URL` in `.env` | Real IB | **PeopleSoft operator + roles** |
 
 ---
 
 ## Related docs
 
+- [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — who owns BFF vs IB
+- [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) — cutover to real PS
+- [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — `integrationBrokerClient.ts` trace
 - [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md) — mock data editing (dev only)
-- [README.md](../../README.md) — starter quick start
+- [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) — all lab commands
+- [README.md](../README.md) — starter quick start

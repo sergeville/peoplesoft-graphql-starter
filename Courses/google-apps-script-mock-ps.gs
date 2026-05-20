@@ -1,5 +1,10 @@
 /**
  * Mock PeopleSoft Integration Broker — bound to THIS spreadsheet.
+ *
+ * Course: Courses/GOOGLE_SHEET_AS_MOCK_PS.md
+ * To pick: Courses/COURSE.md#module-7--mock-integration-broker
+ * Index:  Courses/SCRIPT_COURSE_LINKS.md
+ *
  * Deploy: Deploy → New deployment → Web app → Execute as Me → Anyone can access
  *
  * Node client calls:

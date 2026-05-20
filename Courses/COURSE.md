@@ -13,28 +13,39 @@
 1. Clone/open the repo and complete **Module 0** setup.
 2. Do each module in order; **Labs** are hands-on (required).
 3. Use **Checkpoint questions** to verify understanding before moving on.
-4. Deep dives live in this `Courses/` folder — especially [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md), [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md).
+4. Use [Courses/README.md](./README.md) as the **hub** (module map + supplemental docs).
+5. Deep dives: [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md), [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md).
+6. **Scripts ↔ course:** [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) — each module’s **Scripts for this module** table links to `npm run` and source files; scripts link back (**To pick** when several apply).
 
-| Module | Topic | ~Time |
-|--------|--------|-------|
-| 0 | Setup & first run | 45 min |
-| 1 | Why this architecture exists (+ team boundaries) | 1 h |
-| 2 | The three runtimes (ports 3000, 4000, 4100) | 1 h |
-| 3 | GraphQL contract (schema & Sandbox) | 1.5 h |
-| 4 | Backend: Apollo Server boot flow | 1 h |
-| 5 | Resolvers & EmployeeService | 1.5 h |
-| 6 | PeopleSoft data layer (mock, CSV, store) | 2 h |
-| 7 | Mock Integration Broker REST | 1.5 h |
-| 7b | Docker mock stack & IB configure map | 1 h |
-| 8 | Frontend: Next.js + Apollo Client | 2 h |
-| 9 | CRUD: mutations & forms | 1.5 h |
-| 10 | Pagination & effective dating | 1 h |
-| 11 | Real PS Integration Broker & row security | 2 h |
-| 12 | Capstone & production checklist | 2 h |
+| Module | Topic | ~Time | Primary commands → [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md) |
+|--------|--------|-------|---------------------------------------------------------------------|
+| 0 | Setup & first run | 45 min | `dev` |
+| 1 | Why this architecture exists (+ team boundaries) | 1 h | (read); trace later with `dev:mock-ps` |
+| 2 | The three runtimes (ports 3000/3001, 4000, 4100; optional 8000 §13) | 1 h | `dev`, `stack:stop` |
+| 3 | GraphQL contract (schema & Sandbox) | 1.5 h | `dev:backend` |
+| 4 | Backend: Apollo Server boot flow | 1 h | `dev:backend`, `typecheck` |
+| 5 | Resolvers & EmployeeService | 1.5 h | `dev:backend` |
+| 6 | PeopleSoft data layer (mock, CSV, store) | 2 h | `export:employees`, `sync:sheet` |
+| 7 | Mock Integration Broker REST | 1.5 h | `dev:mock-ps`, `mock-ib` |
+| 7b | Docker mock stack & IB configure map | 1 h | `stack:docker`, `stack:stop` |
+| 8 | Frontend: Next.js + Apollo Client | 2 h | `dev:frontend`, `dev` |
+| 9 | CRUD: mutations & forms | 1.5 h | `dev` or `dev:mock-ps` |
+| 10 | Pagination & effective dating | 1 h | `dev` |
+| 11 | Real PS Integration Broker & row security | 2 h | env + [PEOPLESOFT_IB_ROW_SECURITY](./PEOPLESOFT_IB_ROW_SECURITY.md) |
+| 12 | Capstone & production checklist | 2 h | `build`, `stack:docker` |
+| **§13** | **Advanced section: Apollo MCP & AI agents** (optional) | 2–3 h | `dev:with-mcp`, `dev:mcp`, `mcp:inspect` → [Section 13](./MODULE_13_APOLLO_MCP_AGENTS.md) |
 
 ---
 
 ## Module 0 — Setup & first run
+
+### Scripts for this module
+
+| Run | Script / entry |
+|-----|----------------|
+| `npm run dev` | [`backend/src/server.ts`](../backend/src/server.ts) + Next.js `dev` in [`frontend/package.json`](../frontend/package.json) |
+
+Full index: [SCRIPT_COURSE_LINKS § Module 0](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
 
 ### Goals
 
@@ -62,6 +73,8 @@ MOCK_DATA_SOURCE=auto
 ```bash
 npm run dev
 ```
+
+(See [root `package.json`](../package.json) `scripts.dev` — starts backend + frontend together.)
 
 | URL | What |
 |-----|------|
@@ -99,6 +112,17 @@ query {
 ---
 
 ## Module 1 — Why this architecture exists
+
+### Scripts for this module
+
+No dedicated lab command — this module is **read + code trace**. After Module 0, use these when tracing Side 2:
+
+| To pick | Run | Entry |
+|---------|-----|--------|
+| Mock CSV only | `npm run dev` | [`employeeService.ts`](../backend/src/services/employeeService.ts) (`mock`) |
+| Mock IB HTTP | `npm run dev:mock-ps` | [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) |
+
+Index: [SCRIPT_COURSE_LINKS § Module 1](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script) · [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md).
 
 ### The problem
 
@@ -151,10 +175,10 @@ The frontend **never** talks to PeopleSoft directly. GraphQL is **internal** to 
 
 ### Read
 
-- Root [README.md](./README.md) — Architecture & two sides
+- Root [README.md](../README.md) — Architecture & two sides
 - [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — org split, deliverables, questions for PS team
-- [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — trace Save → `fetch()`
-- Your notes: `StepGrapQL.md` (concepts)
+- [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — trace Save → `fetch()` (commands in [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md))
+- [Courses/README.md](./README.md) — module + script map
 
 ### Lab 1.1 — Find the team boundary in code
 
@@ -182,7 +206,18 @@ The frontend **never** talks to PeopleSoft directly. GraphQL is **internal** to 
 
 ## Module 2 — The three runtimes (ports)
 
+### Scripts for this module
+
+| Run | Script / entry |
+|-----|----------------|
+| `npm run dev` | [`backend/src/server.ts`](../backend/src/server.ts) + frontend `dev` |
+| `npm run stack:stop` | [`scripts/stop-dev-stack.sh`](../scripts/stop-dev-stack.sh) — free ports 3000, 3001, 4000, 4100, 8000 |
+
+Index: [SCRIPT_COURSE_LINKS § Module 2](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 ### Map
+
+**Ports:** local dev UI **3000**; Docker UI **3001** (avoids clash with local Next); GraphQL **4000**; mock IB **4100**; Apollo MCP Server **8000** ([Section 13](./MODULE_13_APOLLO_MCP_AGENTS.md), optional).
 
 ```text
                     ┌──────────────────────────────────────┐
@@ -216,7 +251,7 @@ The frontend **never** talks to PeopleSoft directly. GraphQL is **internal** to 
 | `PEOPLESOFT_DATA_SOURCE` | `mock` \| `integration-broker` | Where EmployeeService reads/writes |
 | `MOCK_DATA_SOURCE` | `auto` \| `csv` \| `sheet` \| `generate` | How mock rows load at startup |
 
-**Common mistake:** `PEOPLESOFT_DATA_SOURCE=integration-broker` without anything on port **4100** → `fetch failed`. Use `mock` for UI + CSV, or `npm run dev:mock-ps`.
+**Common mistake:** `PEOPLESOFT_DATA_SOURCE=integration-broker` without anything on port **4100** → `fetch failed`. Use `mock` for UI + CSV, or [`npm run dev:mock-ps`](../package.json) (starts [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts) — Module 7).
 
 ### Lab 2.1 — Trace a request
 
@@ -232,7 +267,7 @@ The frontend **never** talks to PeopleSoft directly. GraphQL is **internal** to 
 | `frontend/next.config.ts` | Proxy GraphQL |
 | `frontend/lib/apollo-client.ts` | Apollo Client config |
 | `backend/src/server.ts` | Starts Apollo after data bootstrap |
-| `package.json` (root) | `npm run dev` runs both processes |
+| [`package.json`](../package.json) (root) | [`npm run dev`](../package.json) runs both processes |
 
 ### Checkpoint
 
@@ -242,6 +277,15 @@ The frontend **never** talks to PeopleSoft directly. GraphQL is **internal** to 
 ---
 
 ## Module 3 — GraphQL contract
+
+### Scripts for this module
+
+| Run | Entry |
+|-----|--------|
+| `npm run dev:backend` | [`backend/src/server.ts`](../backend/src/server.ts) — Sandbox at http://localhost:4000 |
+| `npm run dev` | Full stack (UI + Sandbox) |
+
+Contract file: [`backend/src/graphql/schema.ts`](../backend/src/graphql/schema.ts). Index: [SCRIPT_COURSE_LINKS § Module 3](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
 
 ### Schema as API documentation
 
@@ -335,6 +379,15 @@ Run `query { id }` and read the validation error. Understand: **`id` is not on `
 
 ## Module 4 — Backend boot flow
 
+### Scripts for this module
+
+| Run | Script / entry |
+|-----|----------------|
+| `npm run dev:backend` | [`backend/src/server.ts`](../backend/src/server.ts) (`tsx watch`) |
+| `npm run typecheck` | TypeScript check in [`backend/package.json`](../backend/package.json) |
+
+Index: [SCRIPT_COURSE_LINKS § Module 4](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 ### Startup sequence
 
 ```text
@@ -369,6 +422,14 @@ server.ts
 ---
 
 ## Module 5 — Resolvers & EmployeeService
+
+### Scripts for this module
+
+| Run | Entry |
+|-----|--------|
+| `npm run dev:backend` | [`resolvers/index.ts`](../backend/src/resolvers/index.ts), [`employeeService.ts`](../backend/src/services/employeeService.ts) |
+
+Index: [SCRIPT_COURSE_LINKS § Module 5](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
 
 ### Separation of concerns
 
@@ -422,6 +483,15 @@ On paper, trace: `EmployeeList` → `useQuery` → resolver → `listEmployees` 
 
 ## Module 6 — PeopleSoft data layer (mock & CSV)
 
+### Scripts for this module
+
+| Run | Script file |
+|-----|-------------|
+| `npm run export:employees` | [`backend/scripts/export-employees-csv.ts`](../backend/scripts/export-employees-csv.ts) → writes [`backend/data/employees.csv`](../backend/data/employees.csv) |
+| `npm run sync:sheet` | [`backend/scripts/sync-employees-from-sheet.ts`](../backend/scripts/sync-employees-from-sheet.ts) |
+
+Also: [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md) (same commands). Index: [SCRIPT_COURSE_LINKS § Module 6](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 ### Mental model: PS_JOB-style rows
 
 One **employee** (`emplid`) can have **many rows** over time (`effdt`, position, salary).  
@@ -441,8 +511,8 @@ One **employee** (`emplid`) can have **many rows** over time (`effdt`, position,
 See [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md).
 
 ```bash
-npm run export:employees   # CSV from generator
-npm run sync:sheet         # Pull published Sheet → CSV
+npm run export:employees   # → backend/scripts/export-employees-csv.ts
+npm run sync:sheet         # → backend/scripts/sync-employees-from-sheet.ts
 ```
 
 ### Lab 6.1
@@ -460,14 +530,22 @@ npm run sync:sheet         # Pull published Sheet → CSV
 
 ## Module 7 — Mock Integration Broker
 
+### Scripts for this module
+
+| Run | Script / entry |
+|-----|----------------|
+| `npm run dev:mock-ps` | [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts) + [`server.ts`](../backend/src/server.ts) + frontend |
+| `npm run mock-ib` | [`backend/src/mock-ib-server.ts`](../backend/src/mock-ib-server.ts) only (port **4100**) |
+
+HTTP routes: [`mockIntegrationBroker/server.ts`](../backend/src/peoplesoft/mockIntegrationBroker/server.ts). Index: [SCRIPT_COURSE_LINKS § Module 7](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 ### Why mock IB?
 
 To practice the **`integration-broker`** code path without a PeopleSoft environment.
 
 ```bash
-cp backend/.env.mock-ib.example backend/.env
-# Then set PEOPLESOFT_DATA_SOURCE=integration-broker for IB path only, OR use dev:mock-ps
-npm run dev:mock-ps
+cp backend/.env.mock-ib.example backend/.env   # sets PEOPLESOFT_DATA_SOURCE=integration-broker + PS_BASE_URL=:4100
+npm run dev:mock-ps   # mock-ib-server.ts + server.ts + frontend (see backend/src/mock-ib-server.ts)
 ```
 
 Three processes: **mock-ps :4100**, **backend :4000**, **frontend :3000**.
@@ -504,12 +582,34 @@ Read `mockIntegrationBroker/server.ts` and `payloads.ts`.
 
 **Read:** [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) (full labs and PS PeopleTools mapping).
 
+> **IMPORTANT:** Docker services in [`docker-compose.yml`](../docker-compose.yml) (`frontend`, `backend`, `mock-ps`) are **dev environment only** — not for production.
+
+**Read next for production:** [DOCKER_AND_IB § Dev vs production](./DOCKER_AND_IB_CONFIGURE.md#dev-vs-production-environments-explained) and [§ How to configure production](./DOCKER_AND_IB_CONFIGURE.md#how-to-configure-the-production-environment).
+
+### Scripts for this module
+
+| Run | Script / config |
+|-----|-----------------|
+| `npm run stack:docker` | [`docker-compose.yml`](../docker-compose.yml) (`docker compose up --build`) |
+| `npm run stack:stop` | [`scripts/stop-dev-stack.sh`](../scripts/stop-dev-stack.sh) |
+
+Same app as [`npm run dev:mock-ps`](../package.json) but containerized. Index: [SCRIPT_COURSE_LINKS § Module 7b](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 ### Goals
 
 - Run **mock-ps + backend + frontend** with `docker compose up --build`.
 - Relate Docker env vars (`PS_BASE_URL`, `PS_USERNAME`) to what the **PeopleSoft team** sets in Integration Broker.
 - Know when to **restart** containers after code/env changes.
 - Explain why **mock PS in Docker is good for dev** but **real PS is not containerized** in this project.
+- Describe **how production** should be configured (`PS_BASE_URL`, no `mock-ps`, secrets, PS team deliverables).
+
+### Dev vs production (read before labs)
+
+| | Development | Production |
+|--|-------------|------------|
+| Docker `mock-ps` | ✅ Teaching / local only | ❌ Never |
+| `PS_BASE_URL` | `http://mock-ps:4100` or localhost | PS team’s real IB HTTPS URL |
+| Full guide | [DOCKER_AND_IB § Dev vs production](./DOCKER_AND_IB_CONFIGURE.md#dev-vs-production-environments-explained) | [§ Production configuration](./DOCKER_AND_IB_CONFIGURE.md#how-to-configure-the-production-environment) |
 
 ### Architecture decision (read first)
 
@@ -526,10 +626,11 @@ Read `mockIntegrationBroker/server.ts` and `payloads.ts`.
 ### Quick start
 
 ```bash
-docker compose up --build
+npm run stack:docker
+# same as: docker compose up --build  (see docker-compose.yml)
 ```
 
-Open http://localhost:3001 — same app as `npm run dev:mock-ps`, but all three services run in containers (Docker uses host port **3001** so local `npm run dev` on 3000 can still run).
+Open http://localhost:3001 — same app as [`npm run dev:mock-ps`](../package.json), but all three services run in containers (Docker uses host port **3001** so local `npm run dev` on 3000 can still run).
 
 ### What you would see in real PeopleSoft (summary)
 
@@ -545,7 +646,7 @@ Detailed tables and PeopleTools navigation: **DOCKER_AND_IB_CONFIGURE.md** and c
 
 ### Lab 7b.1
 
-1. `docker compose up --build` — confirm three containers healthy.
+1. [`npm run stack:docker`](../package.json) — confirm three containers healthy (see [`docker-compose.yml`](../docker-compose.yml)).
 2. `curl -u demo:demo http://localhost:4100/employees?limit=2`
 3. Open UI list — confirm employees load through GraphQL (not direct to :4100 from browser).
 
@@ -566,6 +667,16 @@ Detailed tables and PeopleTools navigation: **DOCKER_AND_IB_CONFIGURE.md** and c
 ---
 
 ## Module 8 — Frontend: Next.js + Apollo Client
+
+### Scripts for this module
+
+| Run | Entry |
+|-----|--------|
+| `npm run dev:frontend` | Next.js dev server — [`frontend/package.json`](../frontend/package.json) |
+| `npm run dev` | Full stack (if backend already running separately, use `dev:frontend` only) |
+
+Index: [SCRIPT_COURSE_LINKS § Module 8](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 
 ### App Router structure
 
@@ -619,6 +730,15 @@ Apollo Client:
 
 ## Module 9 — CRUD: mutations & forms
 
+### Scripts for this module
+
+| Mode | Run | Trace |
+|------|-----|--------|
+| CSV CRUD (default) | `npm run dev` | [CODE_PATH § Mode A](./CODE_PATH_GRAPHQL_TO_PS.md#mode-a--graphql--csv-current-default) |
+| HTTP to mock IB | `npm run dev:mock-ps` | [CODE_PATH § Mode B](./CODE_PATH_GRAPHQL_TO_PS.md#mode-b--graphql--http--mock-ps-see-fetch) |
+
+Index: [SCRIPT_COURSE_LINKS § Module 9](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 ### GraphQL mutations (backend)
 
 | Mutation | `mock` path | `integration-broker` path |
@@ -670,6 +790,14 @@ mutation {
 
 ## Module 10 — Pagination & effective dating
 
+### Scripts for this module
+
+| Run | Entry |
+|-----|--------|
+| `npm run dev` | [`EmployeeList.tsx`](../frontend/components/EmployeeList.tsx), [`effectiveDating.ts`](../backend/src/peoplesoft/effectiveDating.ts) |
+
+Index: [SCRIPT_COURSE_LINKS § Module 10](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 ### Pagination
 
 - GraphQL: `employees(limit, offset)` + `employeeCount`
@@ -694,6 +822,15 @@ mutation {
 ---
 
 ## Module 11 — Real PeopleSoft & row security
+
+### Scripts for this module
+
+| Environment | Run | Notes |
+|-------------|-----|--------|
+| Compare dev mock | `npm run dev:mock-ps` | Demo only — no real row security |
+| Production | (no starter script) | Set `PS_BASE_URL` in `.env`; BFF calls [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) |
+
+Index: [SCRIPT_COURSE_LINKS § Module 11](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script) · [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md).
 
 ### Working with the PeopleSoft team
 
@@ -748,6 +885,16 @@ Write half a page answering:
 
 ## Module 12 — Capstone project
 
+### Scripts for this module
+
+| Run | Use |
+|-----|-----|
+| `npm run build` | Production build (backend `tsc` + frontend `next build`) |
+| `npm run stack:docker` | (To pick) Ops track — containerized demo |
+| `npm run dev` / `dev:mock-ps` | Feature tracks — local dev |
+
+Index: [SCRIPT_COURSE_LINKS § Module 12](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script).
+
 ### Choose one track
 
 **Track A — Feature extension**
@@ -784,6 +931,48 @@ Write half a page answering:
 
 ---
 
+## Section 13 (Advanced, optional) — Apollo MCP Server & AI agents
+
+**Full lab write-up:** [MODULE_13_APOLLO_MCP_AGENTS.md](./MODULE_13_APOLLO_MCP_AGENTS.md) (file name kept for links; content is **Section 13**).
+
+Apollo’s **Agents** stack in three layers — and what changes in *this* repo at each step:
+
+| Layer | Role | Core course (0–12) | Section 13 change |
+|-------|------|--------------------|-------------------|
+| **Agents** | AI host (Cursor, ChatGPT, …) calls your API | Humans use Next.js only | Configure host MCP → `http://127.0.0.1:8000/mcp` |
+| **Apollo MCP Server** | GraphQL operations → MCP tools → BFF :4000 | BFF on :4000 only | Add `apollo-mcp/`, `npm run dev:mcp` (:8000) |
+| **MCP Apps Client** | Visual React UI inside chat (“visual components”) | Not present | **Separate** AI Apps template project; same GraphQL endpoint |
+
+**Implemented here:** layers 1–2 (labs). **Layer 3** is documented in [MODULE_13 § MCP Apps Client](./MODULE_13_APOLLO_MCP_AGENTS.md#mcp-apps-client-visual-components--layer-3). GraphQL resolvers do **not** need rewrites for MCP — only exposure config and (for layer 3) a new UI app.
+
+### Scripts for this section
+
+| Run | Entry |
+|-----|--------|
+| `npm run dev:with-mcp` | [`server.ts`](../backend/src/server.ts) + [`run-apollo-mcp.sh`](../scripts/run-apollo-mcp.sh) |
+| `npm run dev:mcp` | [`apollo-mcp/mcp.local.yaml`](../apollo-mcp/mcp.local.yaml) → MCP **:8000** |
+| `npm run mcp:install` | [`install-apollo-mcp.sh`](../scripts/install-apollo-mcp.sh) |
+| `npm run mcp:inspect` | MCP Inspector → `http://127.0.0.1:8000/mcp` |
+
+### Quick start
+
+```bash
+npm run dev:backend    # Terminal 1 — GraphQL :4000
+npm run dev:mcp        # Terminal 2 — MCP :8000
+npm run mcp:inspect    # Verify GetEmployeesPage, etc.
+```
+
+Connect Cursor: see [`apollo-mcp/cursor-mcp.example.json`](../apollo-mcp/cursor-mcp.example.json).
+
+### Checkpoint
+
+- Name the three layers: **Agents**, **Apollo MCP Server**, **MCP Apps Client** — what does each add?
+- What is **unchanged** in `backend/` when you enable MCP?
+- What is the difference between **text tool results** (layer 2) and **visual components** (layer 3)?
+- What port does the **human UI** use vs the **MCP server**?
+
+---
+
 ## File map (cheat sheet)
 
 ```text
@@ -812,19 +1001,39 @@ BACKEND
   data/employees.csv           Dataset (runtime mock data)
 
 Courses/
-  COURSE.md                    This file
-  DOCKER_AND_IB_CONFIGURE.md   Docker + IB PeopleTools map
+  README.md                    Course hub + module map
+  COURSE.md                    This file (modules 0–12)
+  SCRIPT_COURSE_LINKS.md       npm ↔ script file ↔ module (two-way)
+  DOCKER_AND_IB_CONFIGURE.md
   TEAM_BOUNDARIES.md
   CODE_PATH_GRAPHQL_TO_PS.md
   GOOGLE_SHEETS.md
+  GOOGLE_SHEET_AS_MOCK_PS.md
+  google-apps-script-mock-ps.gs
   PEOPLESOFT_IB_ROW_SECURITY.md
+  MODULE_13_APOLLO_MCP_AGENTS.md  Section 13 (Advanced): Apollo MCP + agents
 
-docker-compose.yml             IB configure comments + mock stack
+apollo-mcp/
+  mcp.local.yaml                  Apollo MCP Server config
+  schema.graphql                  SDL for MCP
+  operations/*.graphql            MCP tools (named operations)
+  cursor-mcp.example.json         Cursor MCP config example
+
+scripts/
+  run-apollo-mcp.sh               npm run dev:mcp
+  install-apollo-mcp.sh           npm run mcp:install
+  stop-dev-stack.sh            npm run stack:stop
+  bump-patch-version.mjs       version:patch / pre-commit
+  setup-git-hooks.mjs          npm run prepare
+
+backend/scripts/
+  export-employees-csv.ts      npm run export:employees
+  sync-employees-from-sheet.ts npm run sync:sheet
+
+docker-compose.yml             npm run stack:docker
 docker-compose.real-ps.example.yml
 
-ROOT
-  package.json                 dev, dev:mock-ps, export:employees
-  README.md
+ROOT package.json              all npm run commands (see SCRIPT_COURSE_LINKS.md)
 ```
 
 ---
@@ -833,39 +1042,54 @@ ROOT
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
-| `fetch failed` on UI | `integration-broker` but nothing on :4100 | `PEOPLESOFT_DATA_SOURCE=mock` or `npm run dev:mock-ps` |
-| `EADDRINUSE :4000` | Old backend process | `kill $(lsof -t -iTCP:4000 -sTCP:LISTEN)` |
+| `fetch failed` on UI | `integration-broker` but nothing on :4100 | `PEOPLESOFT_DATA_SOURCE=mock` or [`npm run dev:mock-ps`](../package.json) → [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts) |
+| `EADDRINUSE` on 3000/4000/4100/8000 | Docker + local both running | [`npm run stack:stop`](../package.json) → [`scripts/stop-dev-stack.sh`](../scripts/stop-dev-stack.sh) |
+| `EADDRINUSE :4000` | Old backend process | `kill $(lsof -t -iTCP:4000 -sTCP:LISTEN)` or [`npm run stack:stop`](../package.json) |
 | Empty list | Bad CSV / empty parse | Check `employees.csv` headers |
-| Mutations fail | IB mode | Use `mock` for CSV CRUD |
+| Mutations fail | `integration-broker` but nothing on :4100, or wrong `PS_BASE_URL` | [`npm run dev:mock-ps`](../package.json) for local IB, or `PEOPLESOFT_DATA_SOURCE=mock` for CSV-only |
 | Jane title unchanged | Wrong `asOfDate` | Try 2024-06-01 vs 2026-06-01 |
-| Sheet sync fails | Missing URL | Set `GOOGLE_SHEET_CSV_URL` in `.env` |
+| Sheet sync fails | Missing URL | Set `GOOGLE_SHEET_CSV_URL` in `.env`; run [`npm run sync:sheet`](../package.json) → [`sync-employees-from-sheet.ts`](../backend/scripts/sync-employees-from-sheet.ts) |
 
 ---
 
 ## Commands reference
 
+Full table with course module links (and **To pick** alternates): **[SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md)**.
+
 ```bash
-npm run dev              # Frontend :3000 + Backend :4000
-npm run dev:mock-ps      # + Mock IB :4100
-npm run dev:backend      # GraphQL only
-npm run dev:frontend     # Next.js only
-npm run export:employees # Regenerate employees.csv
-npm run sync:sheet       # Pull Google Sheet → CSV
-npm run typecheck        # Backend tsc (in backend/)
+npm run dev              # → server.ts + Next (Module 0)
+npm run dev:mock-ps      # → mock-ib-server.ts + server.ts + Next (Module 7)
+npm run dev:backend      # → backend/src/server.ts (Module 4)
+npm run dev:frontend     # → frontend dev (Module 8)
+npm run export:employees # → backend/scripts/export-employees-csv.ts (Module 6)
+npm run sync:sheet       # → backend/scripts/sync-employees-from-sheet.ts (Module 6)
+npm run typecheck        # backend/ (Module 4–5)
+npm run stack:stop       # → scripts/stop-dev-stack.sh (Module 2, 7b)
+npm run stack:docker     # → docker-compose.yml (Module 7b)
+npm run dev:mcp          # → apollo-mcp + scripts/run-apollo-mcp.sh (Section 13)
+npm run dev:with-mcp     # → backend + MCP (Section 13)
+npm run mcp:install      # → scripts/install-apollo-mcp.sh (Section 13)
+npm run mcp:inspect      # MCP Inspector (Section 13)
 ```
+
+Each command ↔ file ↔ module: **[SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md)**.
 
 ---
 
 ## Suggested reading order (docs)
 
-1. [README.md](../README.md)
-2. [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md)
-3. [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md)
-4. [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md)
-5. [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md)
-6. [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md)
-6. Apollo GraphQL docs: https://www.apollographql.com/docs
-7. Next.js App Router: https://nextjs.org/docs
+1. [Courses/README.md](./README.md) — hub + module/command map
+2. [README.md](../README.md) — repo quick start
+3. [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) — keep open while running labs
+4. [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — after Module 1
+5. [CODE_PATH_GRAPHQL_TO_PS.md](./CODE_PATH_GRAPHQL_TO_PS.md) — Modules 6–9
+6. [GOOGLE_SHEETS.md](./GOOGLE_SHEETS.md) — Module 6 lab
+7. [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md) — Module 7b
+8. [PEOPLESOFT_IB_ROW_SECURITY.md](./PEOPLESOFT_IB_ROW_SECURITY.md) — Module 11
+9. [MODULE_13_APOLLO_MCP_AGENTS.md](./MODULE_13_APOLLO_MCP_AGENTS.md) — optional advanced **section**
+10. [Apollo GraphQL docs](https://www.apollographql.com/docs)
+11. [Apollo MCP Server docs](https://www.apollographql.com/docs/apollo-mcp-server/)
+12. [Next.js App Router](https://nextjs.org/docs)
 
 ---
 
@@ -874,10 +1098,11 @@ npm run typecheck        # Backend tsc (in backend/)
 - **Week 1:** Modules 0–5 (architecture + GraphQL + backend).
 - **Week 2:** Modules 6–10 (data, IB mock, frontend, CRUD).
 - **Week 3:** Module 11–12 (PS security + capstone).
+- **Optional week 4:** Section 13 (Apollo MCP + agents).
 
 Pair beginners with Sandbox exercises before React.  
 Emphasize **env misconfiguration** early to prevent `fetch failed` confusion.
 
 ---
 
-*Course version: 1.0 — aligned with peoplesoft-graphql-starter (mock CSV, 1000 employees, CRUD, mock IB, pagination).*
+*Course version: 1.2 — includes optional Section 13 (Apollo MCP Server) and two-way [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md).*

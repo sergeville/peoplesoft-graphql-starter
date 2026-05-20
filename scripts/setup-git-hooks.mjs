@@ -1,5 +1,11 @@
 #!/usr/bin/env node
-/** Point this repo at .githooks/ so pre-commit runs locally after npm install. */
+/**
+ * Point this repo at .githooks/ so pre-commit runs locally after npm install.
+ *
+ * Course: README.md#versioning
+ * To pick: (repo tooling — not a course module)
+ * Index:  Courses/SCRIPT_COURSE_LINKS.md
+ */
 import { execSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

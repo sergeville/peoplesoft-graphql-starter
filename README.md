@@ -2,8 +2,11 @@
 
 Next.js UI → Apollo GraphQL (port **4000**) → **mock** PeopleSoft data → swap to **Integration Broker REST**.
 
-**Full-stack course (frontend → backend → PeopleSoft):** [Courses/COURSE.md](./Courses/COURSE.md)  
-**App team vs PeopleSoft team (org boundaries):** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md)
+**Course hub:** [Courses/README.md](./Courses/README.md) (module map + commands)  
+**Full-stack course:** [Courses/COURSE.md](./Courses/COURSE.md) (Modules 0–12)  
+**Scripts ↔ course (two-way):** [Courses/SCRIPT_COURSE_LINKS.md](./Courses/SCRIPT_COURSE_LINKS.md)  
+**App vs PeopleSoft team:** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md)  
+**Advanced section (optional):** [Agents → MCP Server → MCP Apps Client](./Courses/MODULE_13_APOLLO_MCP_AGENTS.md) — what changes at each layer vs the core course
 
 ## Versioning
 
@@ -27,7 +30,7 @@ Manual bump: `npm run version:patch`
 If you see `EADDRINUSE` or `address already in use`:
 
 ```bash
-npm run stack:stop
+npm run stack:stop   # → scripts/stop-dev-stack.sh (Course: Module 2 / 7b)
 # then start ONE mode only
 ```
 
@@ -40,7 +43,7 @@ Paste errors like `^[[200~cd` happen when bracketed paste is on — type command
 Runs the full stack with a **mock Integration Broker** pretending to be PeopleSoft on your network:
 
 ```text
-frontend :3000  →  backend :4000  →  mock-ps :4100  (fake IB REST)
+frontend :3001  →  backend :4000  →  mock-ps :4100  (fake IB REST; host UI port — see table below)
 ```
 
 ```bash
@@ -55,7 +58,9 @@ docker compose up --build
 
 For your **real** site later, see `docker-compose.real-ps.example.yml` (set `PS_BASE_URL` to Integration Broker — not direct Oracle DB).
 
-**Course module:** [Courses/DOCKER_AND_IB_CONFIGURE.md](./Courses/DOCKER_AND_IB_CONFIGURE.md) · IB comment map in `docker-compose.yml`
+> **IMPORTANT:** [`docker-compose.yml`](docker-compose.yml) is **dev only** (includes mock `mock-ps`). **Production** configuration: [Courses/DOCKER_AND_IB_CONFIGURE.md § Production](Courses/DOCKER_AND_IB_CONFIGURE.md#how-to-configure-the-production-environment).
+
+**Course module:** [Courses/DOCKER_AND_IB_CONFIGURE.md](Courses/DOCKER_AND_IB_CONFIGURE.md) · IB comment map in `docker-compose.yml`
 
 ## Quick start
 

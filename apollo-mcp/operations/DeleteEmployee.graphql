@@ -1,0 +1,4 @@
+# Delete an employee by emplid.
+mutation DeleteEmployee($emplid: ID!) {
+  deleteEmployee(emplid: $emplid)
+}

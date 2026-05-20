@@ -1,7 +1,12 @@
 # =============================================================================
 # Docker: full stack with MOCK PeopleSoft (no real PS site / no Oracle DB)
 #
-#   docker compose up --build
+# IMPORTANT: All services in this file are for DEV ENVIRONMENTS ONLY (local dev,
+# course labs, optional CI). Not for production — use real PS Integration Broker
+# URL in .env and omit mock-ps in prod (see docker-compose.real-ps.example.yml).
+#
+#   npm run stack:docker
+#   # same as: docker compose up --build
 #
 #   UI:      http://localhost:3001  (host 3001 — avoids clash with local npm run dev on 3000)
 #   GraphQL: http://localhost:4000

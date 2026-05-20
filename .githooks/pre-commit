@@ -1,5 +1,8 @@
 #!/bin/sh
 # Auto-bump patch version (0.0.x) on every commit. Set SKIP_VERSION_BUMP=1 to skip.
+#
+# Course: README.md#versioning
+# Index:  Courses/SCRIPT_COURSE_LINKS.md  (scripts/bump-patch-version.mjs)
 if [ "$SKIP_VERSION_BUMP" = "1" ]; then
   exit 0
 fi

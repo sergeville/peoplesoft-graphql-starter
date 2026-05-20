@@ -1,8 +1,9 @@
 {
   "name": "peoplesoft-graphql-starter",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Next.js + Apollo GraphQL BFF with mock PeopleSoft data (swap to Integration Broker REST)",
+  "courseScriptIndex": "Courses/SCRIPT_COURSE_LINKS.md",
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "dev:mock-ps": "concurrently -n mock-ps,backend,frontend -c magenta,blue,green \"npm run mock-ib --prefix backend\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
@@ -15,7 +16,11 @@
     "prepare": "node scripts/setup-git-hooks.mjs",
     "version:patch": "node scripts/bump-patch-version.mjs",
     "stack:stop": "sh scripts/stop-dev-stack.sh",
-    "stack:docker": "docker compose up --build"
+    "stack:docker": "docker compose up --build",
+    "mcp:install": "sh scripts/install-apollo-mcp.sh",
+    "dev:mcp": "sh scripts/run-apollo-mcp.sh",
+    "dev:with-mcp": "concurrently -n backend,mcp -c blue,magenta \"npm run dev:backend\" \"npm run dev:mcp\"",
+    "mcp:inspect": "npx -y @modelcontextprotocol/inspector http://127.0.0.1:8000/mcp --transport http"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

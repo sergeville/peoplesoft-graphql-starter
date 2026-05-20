@@ -1,9 +1,14 @@
 # =============================================================================
 # Example: point backend at REAL PeopleSoft Integration Broker (your site)
 #
+# IMPORTANT: Use for smoke-testing real IB from a dev machine, or as a pattern
+# for production (backend + frontend ONLY). Full production guide:
+#   Courses/DOCKER_AND_IB_CONFIGURE.md#how-to-configure-the-production-environment
+#
 #   docker compose -f docker-compose.yml -f docker-compose.real-ps.example.yml up backend frontend
 #
-# Do NOT start mock-ps when using this overlay.
+# Do NOT start mock-ps when using this overlay. Do NOT use docker-compose.yml
+# with mock-ps in production.
 #
 # -----------------------------------------------------------------------------
 # In PeopleSoft Integration Broker (what your PS team configures — you consume):

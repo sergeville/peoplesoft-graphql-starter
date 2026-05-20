@@ -1,0 +1,22 @@
+# Get one employee by emplid; optional asOfDate for job history / effective dating.
+query GetEmployee($id: ID!, $asOfDate: String) {
+  employee(id: $id, asOfDate: $asOfDate) {
+    emplid
+    name
+    email
+    department
+    position
+    salary
+    managerEmplid
+    manager {
+      emplid
+      name
+    }
+    jobHistory {
+      position
+      startDate
+      endDate
+      salary
+    }
+  }
+}

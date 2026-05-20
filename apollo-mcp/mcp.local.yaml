@@ -1,0 +1,49 @@
+# Apollo MCP Server — local dev (binary or Docker with APOLLO_MCP_ENDPOINT override)
+# Course: Courses/MODULE_13_APOLLO_MCP_AGENTS.md
+
+endpoint: http://127.0.0.1:4000/
+
+schema:
+  source: local
+  path: ./schema.graphql
+
+operations:
+  source: local
+  paths:
+    - ./operations
+
+transport:
+  type: streamable_http
+  address: 127.0.0.1
+  port: 8000
+  stateful_mode: true
+
+# Advanced: let agents explore the graph dynamically (in addition to named tools above)
+introspection:
+  search:
+    enabled: true
+    minify: true
+  validate:
+    enabled: true
+  execute:
+    enabled: true
+  introspect:
+    enabled: true
+    minify: true
+
+overrides:
+  mutation_mode: explicit
+  descriptions:
+    GetEmployeesPage: "List PeopleSoft-style employees with limit/offset and optional asOfDate"
+    GetEmployee: "Get one employee by emplid with job history"
+    GetEmployeeCount: "Count employees for an as-of date"
+    CreateEmployee: "Create employee (Side 2 depends on PEOPLESOFT_DATA_SOURCE)"
+    UpdateEmployee: "Update employee by emplid"
+    DeleteEmployee: "Delete employee by emplid"
+
+server_info:
+  name: peoplesoft-graphql-starter-mcp
+  version: "1.0.0"
+
+logging:
+  level: info

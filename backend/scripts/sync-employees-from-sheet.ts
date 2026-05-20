@@ -1,3 +1,11 @@
+/**
+ * Pull published Google Sheet CSV → backend/data/employees.csv.
+ *
+ * Course: Courses/GOOGLE_SHEETS.md
+ * To pick: Courses/COURSE.md#module-6--peoplesoft-data-layer-mock--csv
+ *          Courses/GOOGLE_SHEET_AS_MOCK_PS.md
+ * Index:  Courses/SCRIPT_COURSE_LINKS.md
+ */
 import { mkdirSync, writeFileSync } from "node:fs";
 import "dotenv/config";
 
@@ -31,3 +39,5 @@ const uniqueEmplids = new Set(rows.map((row) => row.emplid)).size;
 console.log(`Synced ${rows.length} job rows (${uniqueEmplids} employees) from Google Sheet →`);
 console.log(csvPath);
 console.log("Restart the backend to load the updated CSV.");
+console.log("Course: Courses/GOOGLE_SHEETS.md (To pick: Courses/COURSE.md#module-6--peoplesoft-data-layer-mock--csv)");
+console.log("Index:  Courses/SCRIPT_COURSE_LINKS.md");

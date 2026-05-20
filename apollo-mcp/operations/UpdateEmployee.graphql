@@ -1,0 +1,11 @@
+# Update an existing employee by emplid.
+mutation UpdateEmployee($emplid: ID!, $input: EmployeeInput!) {
+  updateEmployee(emplid: $emplid, input: $input) {
+    emplid
+    name
+    email
+    department
+    position
+    salary
+  }
+}

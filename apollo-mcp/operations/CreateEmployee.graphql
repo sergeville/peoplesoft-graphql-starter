@@ -1,0 +1,11 @@
+# Create a new employee (mock mode writes CSV; integration-broker calls mock/real PS).
+mutation CreateEmployee($input: EmployeeInput!) {
+  createEmployee(input: $input) {
+    emplid
+    name
+    email
+    department
+    position
+    salary
+  }
+}

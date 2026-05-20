@@ -4,6 +4,8 @@ Trace every layer when you click **Save** or load the employee list.
 
 **Org context (app team vs PeopleSoft team):** [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md)
 
+**Scripts by mode:** [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script) · Mode B: [`npm run dev:mock-ps`](../package.json) → [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts) · Mode A CSV: [`npm run export:employees`](../package.json) → [`export-employees-csv.ts`](../backend/scripts/export-employees-csv.ts)
+
 ## Two modes in this project
 
 | Mode | `PEOPLESOFT_DATA_SOURCE` | Where data lives | See HTTP calls? |
@@ -16,6 +18,8 @@ To **see the call in code**, use mode **B**.
 ---
 
 ## Mode A — GraphQL → CSV (current default)
+
+**Course:** [Module 6](./COURSE.md#module-6--peoplesoft-data-layer-mock--csv) · **Run:** [`npm run dev`](../package.json) · **Data scripts:** [`export-employees-csv.ts`](../backend/scripts/export-employees-csv.ts), [`sync-employees-from-sheet.ts`](../backend/scripts/sync-employees-from-sheet.ts)
 
 ```text
 Browser (EmployeeForm.tsx)
@@ -49,6 +53,8 @@ Google Sheet is **not** in this path. Update Sheet manually: **File → Import**
 
 ## Mode B — GraphQL → HTTP → Mock PS (see `fetch`)
 
+**Course:** [Module 7](./COURSE.md#module-7--mock-integration-broker) · **Run:** [`npm run dev:mock-ps`](../package.json) · **Mock server:** [`mock-ib-server.ts`](../backend/src/mock-ib-server.ts)
+
 ### Read (employee list)
 
 ```text
@@ -63,9 +69,9 @@ employeeService.ts
   if integration-broker → integrationBrokerClient.fetchEmployees()
     → fetch("http://localhost:4100/employees?limit=50&offset=0")   ← LOOK HERE
 
-integrationBrokerClient.ts  lines 70-102
-  buildUrl("/employees")
-  Authorization: Basic ...
+integrationBrokerClient.ts  (fetchEmployees → request())
+  buildUrl("/employees") + Authorization: Basic ...
+  console.log `[Integration Broker] GET …` in backend terminal
   response.json() → mapIntegrationBrokerEmployee()
 
 mockIntegrationBroker/server.ts
@@ -75,7 +81,7 @@ mappers.ts
   EMPLID, NAME, EMAIL_ADDR → EmployeeRecord
 ```
 
-### Write (add / edit / delete) — after wiring
+### Write (add / edit / delete)
 
 ```text
 EmployeeForm.tsx
@@ -104,7 +110,7 @@ mockIntegrationBroker/server.ts
 ```bash
 cd ~/Documents/Projects/peoplesoft-graphql-starter
 cp backend/.env.mock-ib.example backend/.env
-npm run dev:mock-ps
+npm run dev:mock-ps   # mock-ib-server.ts + server.ts + frontend — Module 7
 ```
 
 **`backend/.env`:**
@@ -116,18 +122,21 @@ PS_USERNAME=demo
 PS_PASSWORD=demo
 ```
 
-Watch the **`[mock-ps]`** terminal when you use the UI — you will see:
+Watch terminals when you use the UI (`npm run dev:mock-ps` labels them **`[backend]`** and **`[mock-ps]`**):
 
 ```text
-[Mock PS IB] GET /employees?limit=50&offset=0
-[Mock PS IB] POST /employees
-[Mock PS IB] PUT /employee/100002
-[Mock PS IB] DELETE /employee/100099
+[backend]  [Integration Broker] GET http://localhost:4100/employees?limit=50&offset=0
+[mock-ps]  [Mock PS IB] GET /employees?limit=50&offset=0
+[mock-ps]  [Mock PS IB] POST /employees
+[mock-ps]  [Mock PS IB] PUT /employee/100002
+[mock-ps]  [Mock PS IB] DELETE /employee/100099
 ```
 
 ---
 
 ## Mode C — GraphQL → Google Sheet as mock PS (Apps Script)
+
+**Course:** [GOOGLE_SHEET_AS_MOCK_PS](./GOOGLE_SHEET_AS_MOCK_PS.md) · **Run:** [`npm run dev`](../package.json) · **Deploy:** [`google-apps-script-mock-ps.gs`](./google-apps-script-mock-ps.gs)
 
 Your sheet can **be** the mock PeopleSoft server:
 
@@ -144,6 +153,8 @@ GraphQL → integrationBrokerClient.fetch()
 ---
 
 ## Real PeopleSoft (production)
+
+**Course:** [Module 11](./COURSE.md#module-11--real-peoplesoft--row-security) · [PEOPLESOFT_IB_ROW_SECURITY](./PEOPLESOFT_IB_ROW_SECURITY.md)
 
 Same client file, different URL:
 
@@ -168,3 +179,5 @@ GraphQL and frontend stay the same.
 | PS JSON mapping | `backend/src/peoplesoft/mappers.ts` |
 | Mock PS server | `backend/src/mock-ib-server.ts`, `mockIntegrationBroker/server.ts` |
 | Direct CSV (no HTTP) | `backend/src/peoplesoft/employeeStore.ts` |
+
+**Command index:** [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md)

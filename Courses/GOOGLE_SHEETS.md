@@ -2,6 +2,13 @@
 
 Edit employees in Google Sheets, then load them into GraphQL / mock PeopleSoft.
 
+**Course:** [COURSE.md § Module 6](./COURSE.md#module-6--peoplesoft-data-layer-mock--csv) · **Hub:** [Courses/README.md](./README.md) · **Scripts:** [SCRIPT_COURSE_LINKS § Module 6](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script)
+
+| Run | Script |
+|-----|--------|
+| `npm run export:employees` | [`backend/scripts/export-employees-csv.ts`](../backend/scripts/export-employees-csv.ts) |
+| `npm run sync:sheet` | [`backend/scripts/sync-employees-from-sheet.ts`](../backend/scripts/sync-employees-from-sheet.ts) |
+
 ## Column headers (row 1)
 
 Keep these exact header names in row 1:
@@ -26,11 +33,10 @@ Keep these exact header names in row 1:
 ### 1. Export CSV from this project
 
 ```bash
-cd backend
 npm run export:employees
 ```
 
-Creates `backend/data/employees.csv` (~1000 employees).
+Runs [`backend/scripts/export-employees-csv.ts`](../backend/scripts/export-employees-csv.ts) and creates [`backend/data/employees.csv`](../backend/data/employees.csv) (~1000 employees).
 
 ### 2. Import into Google Sheets
 
@@ -67,8 +73,8 @@ GOOGLE_SHEET_CSV_URL=https://docs.google.com/spreadsheets/d/YOUR_ID/export?forma
 ```
 
 ```bash
-npm run sync:sheet
-npm run dev
+npm run sync:sheet   # → backend/scripts/sync-employees-from-sheet.ts
+npm run dev          # → backend/src/server.ts + frontend
 ```
 
 **Option C — Read Sheet directly on every backend start**
@@ -85,8 +91,8 @@ Restart backend after Sheet edits.
 1. Add / edit / delete rows in Google Sheets  
 2. Either:  
    - **Download** → **File → Download → CSV** → save as `backend/data/employees.csv`, or  
-   - Run `npm run sync:sheet` (if `GOOGLE_SHEET_CSV_URL` is set)  
-3. Restart `npm run dev` (or `npm run dev:mock-ps`)
+   - Run [`npm run sync:sheet`](../package.json) → [`sync-employees-from-sheet.ts`](../backend/scripts/sync-employees-from-sheet.ts) (if `GOOGLE_SHEET_CSV_URL` is set)  
+3. Restart [`npm run dev`](../package.json) (or [`npm run dev:mock-ps`](../package.json) for IB path — [Module 7](./COURSE.md#module-7--mock-integration-broker))
 
 ## Notes
 

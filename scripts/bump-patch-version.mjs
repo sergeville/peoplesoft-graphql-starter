@@ -2,6 +2,10 @@
 /**
  * Bump patch version (x.y.Z) in root, backend, and frontend package.json.
  * Keeps all three in sync.
+ *
+ * Course: README.md#versioning
+ * To pick: (repo tooling — not a course module)
+ * Index:  Courses/SCRIPT_COURSE_LINKS.md
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";

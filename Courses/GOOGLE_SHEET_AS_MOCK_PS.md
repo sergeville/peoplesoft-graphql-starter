@@ -1,5 +1,7 @@
 # Use your Google Sheet as mock PeopleSoft (Apps Script)
 
+**Course:** [Module 7](./COURSE.md#module-7--mock-integration-broker) · **Script to deploy:** [`google-apps-script-mock-ps.gs`](./google-apps-script-mock-ps.gs) · **Run app:** [`npm run dev`](../package.json) → [`backend/src/server.ts`](../backend/src/server.ts) + frontend · Index: [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script)
+
 Your sheet:  
 https://docs.google.com/spreadsheets/d/1v8or00pEg1dEQm04QurJSfiWAqoiP_qvXvVa0yupixM/edit?gid=164390836
 
@@ -13,7 +15,7 @@ The Apps Script **is** the mock PS server and **updates the sheet** on POST/PUT/
 1. Open your Sheet (**Peoplesoft muck**).
 2. **Extensions → Apps Script**.
 3. Delete any code in `Code.gs`.
-4. Paste the contents of [google-apps-script-mock-ps.gs](./google-apps-script-mock-ps.gs).
+4. Paste the contents of [`google-apps-script-mock-ps.gs`](./google-apps-script-mock-ps.gs) (course header inside file points back here).
 5. **Save** (disk icon).
 
 ---
@@ -49,10 +51,11 @@ PS_PASSWORD=demo
 
 ```bash
 cd ~/Documents/Projects/peoplesoft-graphql-starter
-npm run dev
+npm run dev   # → backend/src/server.ts + frontend (no :4100 mock needed)
 ```
 
 Use the UI — watch **Apps Script → Executions** for each call.  
+Same HTTP path as Module 7: [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) — see [CODE_PATH § Mode C](./CODE_PATH_GRAPHQL_TO_PS.md#mode-c--graphql--google-sheet-as-mock-ps-apps-script).  
 Your Sheet rows update on create/update/delete.
 
 ---
