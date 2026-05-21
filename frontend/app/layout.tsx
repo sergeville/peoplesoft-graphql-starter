@@ -5,8 +5,8 @@ import { ApolloWrapper } from "@/components/ApolloWrapper";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PeopleSoft GraphQL Starter",
-  description: "Next.js UI → Apollo GraphQL → mock PeopleSoft data",
+  title: "Using GraphQL to get PeopleSoft data",
+  description: "Using GraphQL to get PeopleSoft data — Next.js UI and Apollo BFF",
 };
 
 export default function RootLayout({

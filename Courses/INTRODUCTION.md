@@ -1,8 +1,8 @@
-# Introduction: PeopleSoft with GraphQL
+# Introduction: Using GraphQL to get PeopleSoft data
 
 A short orientation before [COURSE.md](./COURSE.md) Modules 0–12.
 
-![PeopleSoft with GraphQL — Course Architecture](./images/peoplesoft-graphql-architecture.png)
+![Using GraphQL to get PeopleSoft data — architecture](./images/peoplesoft-graphql-architecture.png)
 
 ```mermaid
 flowchart TB

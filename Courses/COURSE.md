@@ -1,4 +1,4 @@
-# Full-Stack Course: PeopleSoft GraphQL Starter
+# Using GraphQL to get PeopleSoft data
 
 ```mermaid
 flowchart TB
@@ -23,7 +23,7 @@ flowchart TB
 1. Clone/open the repo and complete **Module 0** setup.
 2. Do each module in order; **Labs** are hands-on (required).
 3. Use **Checkpoint questions** to verify understanding before moving on.
-4. Use [Courses/README.md](./README.md) as the **hub** (module map + supplemental docs).
+4. Use the repo [README.md](../README.md) as the **course hub** (overview, diagram, module map).
 5. Deep dives: [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md), [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md), [DOCKER_AND_IB_CONFIGURE.md](./DOCKER_AND_IB_CONFIGURE.md).
 6. **Scripts ↔ course:** [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) — each module’s **Scripts for this module** table links to `npm run` and source files; scripts link back (**To pick** when several apply).
 
@@ -192,7 +192,7 @@ The frontend **never** talks to PeopleSoft directly. GraphQL is **internal** to 
 - Root [README.md](../README.md) — Architecture & two sides
 - [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — org split, deliverables, questions for PS team
 - [CODE_PATH_GRAPHQL_TO_PS.md](CODE_PATH_GRAPHQL_TO_PS.md) — trace Save → `fetch()` (commands in [SCRIPT_COURSE_LINKS](./SCRIPT_COURSE_LINKS.md))
-- [Courses/README.md](./README.md) — module + script map
+- [README.md](../README.md) — course hub (diagram, module map, quick start)
 
 ### Lab 1.1 — Find the team boundary in code
 
@@ -1045,7 +1045,7 @@ Each command ↔ file ↔ module: **[SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LIN
 
 ## Suggested reading order (docs)
 
-1. [Courses/README.md](./README.md) — hub + module/command map
+1. [README.md](../README.md) — course hub + module/command map
 2. [README.md](../README.md) — repo quick start
 3. [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) — keep open while running labs
 4. [TEAM_BOUNDARIES.md](./TEAM_BOUNDARIES.md) — after Module 1

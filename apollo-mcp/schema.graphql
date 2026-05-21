@@ -1,4 +1,4 @@
-# PeopleSoft GraphQL Starter — SDL for Apollo MCP Server (local schema source)
+# Using GraphQL to get PeopleSoft data — SDL for Apollo MCP Server (local schema source)
 # Keep in sync with backend/src/graphql/schema.ts
 
 type Employee {

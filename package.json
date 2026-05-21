@@ -1,8 +1,8 @@
 {
   "name": "peoplesoft-graphql-starter",
   "private": true,
-  "version": "0.0.8",
-  "description": "Next.js + Apollo GraphQL BFF with mock PeopleSoft data (swap to Integration Broker REST)",
+  "version": "0.0.9",
+  "description": "Course: Using GraphQL to get PeopleSoft data — Next.js + Apollo BFF with mock/real Integration Broker",
   "courseScriptIndex": "Courses/SCRIPT_COURSE_LINKS.md",
   "scripts": {
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",

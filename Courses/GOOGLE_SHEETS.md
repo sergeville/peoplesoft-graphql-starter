@@ -2,7 +2,7 @@
 
 Edit employees in Google Sheets, then load them into GraphQL / mock PeopleSoft.
 
-**Course:** [COURSE.md § Module 6](./COURSE.md#module-6--peoplesoft-data-layer-mock--csv) · **Hub:** [Courses/README.md](./README.md) · **Scripts:** [SCRIPT_COURSE_LINKS § Module 6](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script)
+**Course:** [COURSE.md § Module 6](./COURSE.md#module-6--peoplesoft-data-layer-mock--csv) · **Hub:** [README.md](../README.md) · **Scripts:** [SCRIPT_COURSE_LINKS § Module 6](./SCRIPT_COURSE_LINKS.md#by-course-module-course--script)
 
 | Run | Script |
 |-----|--------|

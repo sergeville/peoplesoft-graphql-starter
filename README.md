@@ -1,85 +1,89 @@
-# PeopleSoft GraphQL Starter
+# Using GraphQL to get PeopleSoft data
 
-Next.js UI → Apollo GraphQL (port **4000**) → **mock** PeopleSoft data → swap to **Integration Broker REST**.
+Hands-on course and runnable starter: connect a **modern Next.js UI** to **PeopleSoft-style HR data** through a **GraphQL Backend-for-Frontend (BFF)**, without installing Oracle PeopleSoft on your laptop.
 
 <p align="center">
   <img
     src="./Courses/images/peoplesoft-graphql-architecture.png"
-    alt="PeopleSoft with GraphQL - Course Architecture"
+    alt="Using GraphQL to get PeopleSoft data — architecture"
     width="720"
   />
 </p>
 
-```mermaid
-flowchart TB
-  UI["Next.js UI<br/>:3000 local · :3001 Docker"]
-  BFF["Apollo GraphQL BFF<br/>:4000"]
-  IB["Integration Broker REST<br/>:4100"]
-  UI -->|/api/graphql| BFF
-  BFF -->|PS_BASE_URL| IB
-```
-
-**Course hub:** [Courses/README.md](./Courses/README.md) (module map + commands)  
-**Course intro:** [Courses/INTRODUCTION.md](./Courses/INTRODUCTION.md) (PeopleSoft + GraphQL in ~15 min)  
-**Full-stack course:** [Courses/COURSE.md](./Courses/COURSE.md) (Modules 0–12)  
-**Scripts ↔ course (two-way):** [Courses/SCRIPT_COURSE_LINKS.md](./Courses/SCRIPT_COURSE_LINKS.md)  
-**App vs PeopleSoft team:** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md)  
-**Advanced section (optional):** [Agents → MCP Server → MCP Apps Client](./Courses/MODULE_13_APOLLO_MCP_AGENTS.md) — what changes at each layer vs the core course
-
-## Versioning
-
-Current version: **0.0.1** (see `package.json`).
-
-After `npm install`, a **pre-commit hook** bumps the **patch** version on every commit (`0.0.1` → `0.0.2` → …) in root, `backend/`, and `frontend/` `package.json` files.
-
-Skip once: `SKIP_VERSION_BUMP=1 git commit -m "your message"`
-
-Manual bump: `npm run version:patch`
-
-## Port conflicts? (Docker vs `npm run dev`)
-
-**Do not run both at once** — they fight for the same ports.
-
-| Mode | Command | UI | GraphQL | Mock PS |
-|------|---------|-----|---------|---------|
-| **Docker** | `npm run stack:docker` | http://localhost:3001 | :4000 | :4100 |
-| **Local** | `npm run dev:mock-ps` | http://localhost:3000 | :4000 | :4100 |
-
-If you see `EADDRINUSE` or `address already in use`:
-
-```bash
-npm run stack:stop   # → scripts/stop-dev-stack.sh (Course: Module 2 / 7b)
-# then start ONE mode only
-```
-
-Paste errors like `^[[200~cd` happen when bracketed paste is on — type commands manually or run `npm run stack:stop` without the `#` comment lines.
+| Layer | Port (local) | Who owns it (typical org) |
+|-------|----------------|---------------------------|
+| **Next.js UI** | 3000 (3001 Docker) | Your app / frontend team |
+| **GraphQL BFF · Apollo Server** | 4000 | Your app team — schema, resolvers, `EmployeeService` |
+| **Integration Broker REST** | 4100 mock · real `PS_BASE_URL` | PeopleSoft team — IB services + data rules |
 
 ---
 
-## Docker (mock PeopleSoft — no real PS site)
+## What this course is about
 
-Runs the full stack with a **mock Integration Broker** pretending to be PeopleSoft on your network:
+**Problem:** PeopleSoft exposes **REST through the Integration Broker (IB)** — field names like `EMPLID`, effective dating, terminate-not-delete. Product UIs want **one stable API** shaped for screens.
 
-```mermaid
-flowchart LR
-  FE[frontend :3001] --> BE[backend :4000] --> PS[mock-ps :4100<br/>fake IB REST]
-```
+**Approach:** Your team builds a **GraphQL BFF** in this repo. The browser talks **only** to GraphQL (`/api/graphql`). The BFF translates to IB HTTP, maps PS JSON ↔ GraphQL types, and hides PS complexity (pagination, as-of dates, row security concepts).
 
-```bash
-docker compose up --build
-```
+**What you will do:**
 
-| URL | Service |
-|-----|---------|
-| http://localhost:3001 | Next.js UI (3001 avoids clash with local `npm run dev` on 3000) |
-| http://localhost:4000 | GraphQL |
-| http://localhost:4100/employees | Mock PS REST (Basic `demo` / `demo`) |
+1. Run the stack locally with **mock data** (CSV / in-memory) — no PS license required.
+2. Swap to a **mock Integration Broker** on `:4100` and trace every `fetch()` on the GraphQL → PS path.
+3. Run the same pattern in **Docker**, then study **real IB**, row security, and production config.
+4. Optionally explore **Apollo MCP** (Section 13) for agent tools over the same GraphQL API.
 
-For your **real** site later, see `docker-compose.real-ps.example.yml` (set `PS_BASE_URL` to Integration Broker — not direct Oracle DB).
+**You will not:** install PeopleTools, wire Oracle JDBC, or learn PeopleCode in Module 0. You **will** learn the **integration boundary** your app team owns vs what the PeopleSoft team owns.
 
-> **IMPORTANT:** [`docker-compose.yml`](docker-compose.yml) is **dev only** (includes mock `mock-ps`). **Production** configuration: [Courses/DOCKER_AND_IB_CONFIGURE.md § Production](Courses/DOCKER_AND_IB_CONFIGURE.md#how-to-configure-the-production-environment).
+**Audience:** Developers comfortable with JavaScript/TypeScript. First lab ~30 minutes after [Courses/INTRODUCTION.md](./Courses/INTRODUCTION.md) (~15 min read).
 
-**Course module:** [Courses/DOCKER_AND_IB_CONFIGURE.md](Courses/DOCKER_AND_IB_CONFIGURE.md) · IB comment map in `docker-compose.yml`
+---
+
+## Start here
+
+| Step | Doc | Time |
+|------|-----|------|
+| 1 | **[Courses/INTRODUCTION.md](./Courses/INTRODUCTION.md)** — PeopleSoft, GraphQL, team boundaries | ~15 min |
+| 2 | **[Courses/COURSE.md](./Courses/COURSE.md)** — Modules **0 → 12** (labs + checkpoints) | Main path |
+| 3 | **[Courses/SCRIPT_COURSE_LINKS.md](./Courses/SCRIPT_COURSE_LINKS.md)** — every `npm run` ↔ file ↔ module | As needed |
+
+**Supplemental (linked from modules):**
+
+| Doc | Topic |
+|-----|--------|
+| [TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md) | App team vs PeopleSoft team |
+| [CODE_PATH_GRAPHQL_TO_PS.md](./Courses/CODE_PATH_GRAPHQL_TO_PS.md) | Trace Save → `fetch()`; `[trace]` logs; two-way mapping |
+| [DOCKER_AND_IB_CONFIGURE.md](./Courses/DOCKER_AND_IB_CONFIGURE.md) | Docker stack; dev vs production IB |
+| [GOOGLE_SHEETS.md](./Courses/GOOGLE_SHEETS.md) | Edit mock CSV via Sheets |
+| [GOOGLE_SHEET_AS_MOCK_PS.md](./Courses/GOOGLE_SHEET_AS_MOCK_PS.md) | Apps Script as mock IB |
+| [PEOPLESOFT_IB_ROW_SECURITY.md](./Courses/PEOPLESOFT_IB_ROW_SECURITY.md) | Manager SSO → row security |
+| [MODULE_13_APOLLO_MCP_AGENTS.md](./Courses/MODULE_13_APOLLO_MCP_AGENTS.md) | **Optional** — Agents → MCP Server → MCP Apps Client |
+
+**Terminology:** **Modules** 0–12 = core path. **Section 13** = optional advanced topic.
+
+---
+
+## Module map
+
+| Module | Topic | Primary `npm run` |
+|--------|--------|-------------------|
+| 0 | Setup & first run | `dev` |
+| 1 | Architecture & team boundaries | (read) → [TEAM_BOUNDARIES](./Courses/TEAM_BOUNDARIES.md) |
+| 2 | Three runtimes (ports) | `dev`, `stack:stop` |
+| 3 | GraphQL contract | `dev:backend` |
+| 4 | Backend boot | `dev:backend`, `typecheck` |
+| 5 | Resolvers & service | `dev:backend` |
+| 6 | Mock data & CSV | `export:employees`, `sync:sheet` |
+| 7 | Mock Integration Broker | `dev:mock-ps`, `mock-ib` |
+| 7b | Docker mock stack | `stack:docker`, `stack:stop` |
+| 8 | Frontend (Next.js + Apollo) | `dev:frontend`, `dev` |
+| 9 | CRUD (`delete` = terminate) | `dev` or `dev:mock-ps` |
+| 10 | Pagination & effective dating | `dev` |
+| 11 | Real PS & row security | (config) |
+| 12 | Capstone | `build`, `stack:docker` |
+| **§13** | Apollo MCP (optional) | `dev:with-mcp`, `dev:mcp` |
+
+All commands: **[SCRIPT_COURSE_LINKS.md](./Courses/SCRIPT_COURSE_LINKS.md)**.
+
+---
 
 ## Quick start
 
@@ -91,12 +95,31 @@ npm install --prefix frontend
 npm run dev
 ```
 
-- Frontend: <http://localhost:3000>
-- GraphQL: <http://localhost:4000> (proxied via Next.js at `/api/graphql`)
+| URL | Service |
+|-----|---------|
+| http://localhost:3000 | Next.js UI |
+| http://localhost:4000 | GraphQL (also via UI `/api/graphql`) |
 
-## Architecture
+**Recommended mock-PS path (Module 7):** `npm run dev:mock-ps` — mock IB `:4100` + GraphQL + UI + trace logs under `logs/`.
 
-See [Courses/INTRODUCTION.md](./Courses/INTRODUCTION.md) for the full narrative.
+---
+
+## Port conflicts? (Docker vs local)
+
+**Do not run Docker and `npm run dev` together** — same ports.
+
+| Mode | Command | UI | GraphQL | Mock PS |
+|------|---------|-----|---------|---------|
+| **Local** | `npm run dev:mock-ps` | :3000 | :4000 | :4100 |
+| **Docker** | `npm run stack:docker` | :3001 | :4000 | :4100 |
+
+```bash
+npm run stack:stop   # free ports, then start ONE mode
+```
+
+---
+
+## Architecture (detail)
 
 ```mermaid
 flowchart TB
@@ -104,105 +127,78 @@ flowchart TB
   NX[Next.js :3000<br/>/api/graphql rewrite]
   AP[Apollo Server :4000]
   ES[EmployeeService]
-  DATA[mock data · Integration Broker REST]
+  DATA[mock CSV · mock IB :4100 · real PS_BASE_URL]
   BR --> NX --> AP --> ES --> DATA
 ```
 
-### Two sides (and why it matters at work)
+**Data modes (`PEOPLESOFT_DATA_SOURCE`):**
 
-In many organizations **your app team** owns Side 1; a **PeopleSoft team** owns Side 2.
+| Value | Side 2 behavior |
+|-------|------------------|
+| `mock` | Local CSV / memory — Module 6 |
+| `integration-broker` | HTTP to `PS_BASE_URL` — mock `:4100`, real IB, or [Google Sheet Apps Script](./Courses/GOOGLE_SHEET_AS_MOCK_PS.md) |
 
-| Side | What | Contract |
-|------|------|----------|
-| **1 — App** | Next.js UI + GraphQL BFF (ports 3000 / 4000) | GraphQL (`employees`, mutations) — **your** frontend only talks here |
-| **2 — PeopleSoft** | Integration Broker REST (or local stand-in) | HTTP + JSON (`EMPLID`, `EMAIL_ADDR`, …) — **between teams**, not GraphQL |
+**Key files:** `backend/src/peoplesoft/integrationBrokerClient.ts` (IB boundary) · `mappers.ts` (`EMPLID` → `emplid`) · [CODE_PATH](./Courses/CODE_PATH_GRAPHQL_TO_PS.md) · [TEAM_BOUNDARIES](./Courses/TEAM_BOUNDARIES.md)
 
-```mermaid
-flowchart LR
-  subgraph S1["Side 1 — this repo"]
-    FE[Frontend] --> GQL[GraphQL BFF]
-  end
-  subgraph S2["Side 2 — PeopleSoft team"]
-    IB[Integration Broker] --> PS[PeopleSoft]
-  end
-  GQL -->|HTTP| IB
+---
+
+## Docker (mock PeopleSoft)
+
+```bash
+docker compose up --build
 ```
 
-- **`PEOPLESOFT_DATA_SOURCE=mock`** — Side 2 is local CSV/memory (no PS team, no HTTP).
-- **`PEOPLESOFT_DATA_SOURCE=integration-broker`** — Side 2 is `integrationBrokerClient.ts` → `PS_BASE_URL` (real PS, mock IB on :4100, or [Google Sheet via Apps Script](./Courses/GOOGLE_SHEET_AS_MOCK_PS.md)).
+| URL | Service |
+|-----|---------|
+| http://localhost:3001 | Next.js UI |
+| http://localhost:4000 | GraphQL |
+| http://localhost:4100/employees | Mock IB REST (`demo` / `demo`) |
 
-**Study the PS boundary in:** `backend/src/peoplesoft/integrationBrokerClient.ts` (JSDoc explains terminate-on-delete)  
-**Full write-up:** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md) · [Courses/CODE_PATH_GRAPHQL_TO_PS.md](./Courses/CODE_PATH_GRAPHQL_TO_PS.md) · [§ PS terminate vs delete](./Courses/CODE_PATH_GRAPHQL_TO_PS.md#ps-terminate-vs-delete)
+Production IB: see `docker-compose.real-ps.example.yml` and [DOCKER_AND_IB_CONFIGURE.md § Production](./Courses/DOCKER_AND_IB_CONFIGURE.md#how-to-configure-the-production-environment).
 
-**PeopleSoft JSON mapping:** Inbound IB responses are mapped in `mappers.ts` (`EMPLID` → `emplid`, etc.). GraphQL types align 1:1 with `EmployeeRecord` (no separate GraphQL mapper). Outbound POST/PUT still send camelCase bodies until a reverse mapper is wired — see [Courses/CODE_PATH § Two-way mapping](./Courses/CODE_PATH_GRAPHQL_TO_PS.md#two-way-mapping).
+> [`docker-compose.yml`](docker-compose.yml) is **dev only** (includes `mock-ps`).
 
-## Edit employees in Google Sheets
+---
 
-1. `npm run export:employees` → creates `backend/data/employees.csv`
-2. Import that CSV into [Google Sheets](https://sheets.google.com)
-3. Add / edit rows in the sheet (see [Courses/GOOGLE_SHEETS.md](./Courses/GOOGLE_SHEETS.md) for headers including `hr_status`; UI **Delete** terminates via a new `hr_status=I` row, not row removal)
-4. Download CSV back **or** `npm run sync:sheet` with a published Sheet URL
-5. Restart the backend — data loads into GraphQL objects automatically
-
-## Mock PeopleSoft side (Integration Broker REST)
-
-Simulates what real PS Integration Broker returns (JSON with `EMPLID`, `NAME`, `EMAIL_ADDR`, etc.) on port **4100**.
+## Mock IB & dev traces
 
 ```bash
 cp backend/.env.mock-ib.example backend/.env
 npm run dev:mock-ps
 ```
 
-This starts:
-
-- **mock-ps** — fake IB REST at <http://localhost:4100>
-- **backend** — GraphQL calls IB via `PS_BASE_URL` (`integration-broker` mode)
-- **frontend** — <http://localhost:3000>
-
-Try the mock IB directly:
-
 ```bash
 curl -u demo:demo "http://localhost:4100/employees"
-curl -u demo:demo "http://localhost:4100/employee/100001?asOfDate=2024-06-01"
+grep '[trace]' logs/backend.log   # graphql → resolver → service → IB → mock-ps
+npm run logs                      # tail mock-ib, backend, frontend logs
 ```
 
-Code: `backend/src/peoplesoft/mockIntegrationBroker/`
+Set `DEV_TRACE=0` in `backend/.env` to disable traces. Code: `backend/src/peoplesoft/mockIntegrationBroker/`.
 
-### Logs & call-path trace (`dev:mock-ps`)
+---
 
-`npm run dev:mock-ps` tees stdout to `logs/mock-ib.log`, `logs/backend.log`, and `logs/frontend.log`.
+## Google Sheets (mock data)
 
-```bash
-npm run logs          # last lines from all three
-npm run logs:follow   # tail -f all three
-```
+1. `npm run export:employees` → `backend/data/employees.csv`
+2. Import into Google Sheets — [GOOGLE_SHEETS.md](./Courses/GOOGLE_SHEETS.md)
+3. `npm run sync:sheet` or download CSV → restart backend
 
-**Trace the GraphQL → PS path:** dev logs lines tagged `[trace]` (graphql → resolver → service → IB → mock-ps). Example:
-
-```bash
-grep '[trace]' logs/backend.log
-```
-
-On by default in dev; set `DEV_TRACE=0` in `backend/.env` to disable. More: [Courses/CODE_PATH_GRAPHQL_TO_PS.md](./Courses/CODE_PATH_GRAPHQL_TO_PS.md) (Mode B / `[trace]`).
-
-**Restart:** if ports are busy, run `npm run stack:stop` first (see [Port conflicts](#port-conflicts-docker-vs-npm-run-dev) above).
+---
 
 ## Swap mock → real Integration Broker
 
-1. Copy `backend/.env.example` values into `backend/.env`
-2. Set:
+```env
+PEOPLESOFT_DATA_SOURCE=integration-broker
+PS_BASE_URL=https://your-host/.../your-rest-base
+PS_USERNAME=...
+PS_PASSWORD=...
+```
 
-   ```env
-   PEOPLESOFT_DATA_SOURCE=integration-broker
-   PS_BASE_URL=https://your-host/.../your-rest-base
-   PS_USERNAME=...
-   PS_PASSWORD=...
-   ```
+Adjust paths in `integrationBrokerClient.ts` and field names in `mappers.ts`.
 
-3. Edit `backend/src/peoplesoft/integrationBrokerClient.ts` — set the real REST paths for your delivered IB service
-4. Adjust `backend/src/peoplesoft/mappers.ts` for your JSON field names
+---
 
-## GraphQL queries
+## GraphQL examples
 
 ```graphql
 query {
@@ -224,6 +220,8 @@ query {
 }
 ```
 
+---
+
 ## Project layout
 
 ```mermaid
@@ -233,7 +231,6 @@ flowchart TD
     R[resolvers/]
     P[peoplesoft/ mock · IB · mappers]
     MIB[mockIntegrationBroker/ :4100]
-    MIBS[mock-ib-server.ts]
     S[services/ employeeService]
   end
   subgraph FE[frontend]
@@ -243,5 +240,14 @@ flowchart TD
   end
 ```
 
-# Google Sheets as the employee source
-https://docs.google.com/spreadsheets/d/e/2PACX-1vQyNmWHCtWVtuiko06XwiKhZaa-2s0OJsixiiJKn9zRB0Fh420g6jkYaCUoY-c9EQSgQIUoLXXWQq6D/pub?gid=164390836&single=true&output=csv
+| Path | Role |
+|------|------|
+| `Courses/` | All course markdown + `images/` + Apps Script |
+| `backend/data/employees.csv` | Mock dataset |
+| `scripts/stop-dev-stack.sh` | `stack:stop` |
+
+---
+
+## Versioning
+
+Current version: **0.0.8** (see `package.json`). Pre-commit hook bumps patch on each commit. Skip once: `SKIP_VERSION_BUMP=1 git commit`. Manual: `npm run version:patch`.
