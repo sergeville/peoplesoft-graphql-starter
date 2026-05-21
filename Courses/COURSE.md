@@ -1,10 +1,20 @@
 # Full-Stack Course: PeopleSoft GraphQL Starter
 
+```mermaid
+flowchart TB
+  UI["Next.js UI"]
+  BFF["Apollo GraphQL BFF :4000"]
+  IB["Integration Broker :4100"]
+  UI -->|GraphQL| BFF -->|REST| IB
+```
+
 **Audience:** Developers who know JavaScript/TypeScript and want to understand this project from **browser → GraphQL → PeopleSoft (mock and real)**.
 
 **Repo:** `peoplesoft-graphql-starter`  
 **Time:** ~12–16 hours (self-paced)  
 **Outcome:** You can trace any user action end-to-end, extend the API, and plan a production PeopleSoft Integration Broker integration with row security.
+
+**New to PeopleSoft or GraphQL BFFs?** Read the short **[INTRODUCTION.md](./INTRODUCTION.md)** first (~15 min), then start Module 0 below.
 
 ---
 
@@ -134,11 +144,9 @@ PeopleSoft holds HR data in an enterprise database with **effective dating**, **
 
 ### The pattern: BFF + GraphQL
 
-```text
-┌────────────┐    GraphQL      ┌─────────────┐    REST/CI     ┌─────────────┐
-│  Frontend  │ ──────────────► │  BFF layer  │ ─────────────► │ PeopleSoft  │
-│  (Next.js) │   one request   │  (Apollo)   │   secured      │     (IB)    │
-└────────────┘   exact fields  └─────────────┘                └─────────────┘
+```mermaid
+flowchart LR
+  FE[Frontend · Next.js] -->|GraphQL one request| BFF[BFF · Apollo] -->|REST secured| PS[PeopleSoft · IB]
 ```
 
 **BFF** = Backend-for-Frontend: one API shaped for your UI.  
@@ -148,13 +156,19 @@ PeopleSoft holds HR data in an enterprise database with **effective dating**, **
 
 This repo mirrors how work is often split in the enterprise:
 
-```text
-┌─────────────────────────────────────┐     ┌──────────────────────────────────────┐
-│  SIDE 1 — Your team (this repo)     │     │  SIDE 2 — PeopleSoft team          │
-│  Next.js → GraphQL BFF (:4000)      │     │  Integration Broker REST → PS      │
-│  schema, UI, EmployeeService        │────►│  tables, row security, effdt       │
-└─────────────────────────────────────┘     └──────────────────────────────────────┘
-         GraphQL contract                           HTTP / JSON contract
+```mermaid
+flowchart LR
+  subgraph S1["SIDE 1 — Your team"]
+    NX[Next.js → GraphQL :4000]
+    ES[schema · UI · EmployeeService]
+  end
+  subgraph S2["SIDE 2 — PeopleSoft team"]
+    IB[Integration Broker REST → PS]
+    R[row security · effdt]
+  end
+  NX --> ES
+  ES -->|HTTP JSON contract| IB
+  IB --> R
 ```
 
 - **Side 1 is always the same:** the browser only calls `/api/graphql`. Your squad owns the schema, resolvers, and frontend.
@@ -219,29 +233,14 @@ Index: [SCRIPT_COURSE_LINKS § Module 2](./SCRIPT_COURSE_LINKS.md#by-course-modu
 
 **Ports:** local dev UI **3000**; Docker UI **3001** (avoids clash with local Next); GraphQL **4000**; mock IB **4100**; Apollo MCP Server **8000** ([Section 13](./MODULE_13_APOLLO_MCP_AGENTS.md), optional).
 
-```text
-                    ┌──────────────────────────────────────┐
-  Browser :3000     │  Next.js                             │
-                    │  • pages (app/)                      │
-                    │  • components (EmployeeList, Form)   │
-                    │  • rewrite /api/graphql → :4000      │
-                    └──────────────────┬───────────────────┘
-                                       │
-                    ┌──────────────────▼───────────────────┐
-  GraphQL :4000     │  Apollo Server (backend/)            │
-                    │  • schema + resolvers                │
-                    │  • EmployeeService                   │
-                    └──────────────────┬───────────────────┘
-                                       │
-              ┌────────────────────────┼────────────────────────┐
-              │ mock (in-memory/CSV)   │ integration-broker      │
-              ▼                        ▼                         │
-         mockJobIndex            integrationBrokerClient.ts      │
-              │                        │                         │
-              │                        ▼                         │
-              │              Mock IB :4100 (optional)            │
-              │              or real PeopleSoft host             │
-              └──────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  NX["Next.js :3000<br/>app/ · components · rewrite /api/graphql"]
+  AP["Apollo Server :4000<br/>schema · resolvers · EmployeeService"]
+  NX --> AP
+  AP --> MOCK[mock · mockJobIndex · CSV]
+  AP --> IB[integration-broker · integrationBrokerClient.ts]
+  IB --> M4100[Mock IB :4100 · or real PS host]
 ```
 
 ### Environment switch
@@ -392,14 +391,14 @@ Index: [SCRIPT_COURSE_LINKS § Module 4](./SCRIPT_COURSE_LINKS.md#by-course-modu
 
 ### Startup sequence
 
-```text
-server.ts
-  → dotenv loads backend/.env
-  → bootstrapMockData()
-       → loadMockJobRows()  (CSV / Sheet / generate)
-       → initEmployeeStore(rows)
-  → ApolloServer({ typeDefs, resolvers })
-  → listen :4000
+```mermaid
+flowchart TD
+  ST[server.ts] --> ENV[dotenv · backend/.env]
+  ST --> BOOT[bootstrapMockData]
+  BOOT --> LOAD[loadMockJobRows · CSV/Sheet/generate]
+  LOAD --> INIT[initEmployeeStore]
+  ST --> APOLLO[ApolloServer typeDefs + resolvers]
+  ST --> LISTEN[listen :4000]
 ```
 
 ### Files
@@ -435,10 +434,10 @@ Index: [SCRIPT_COURSE_LINKS § Module 5](./SCRIPT_COURSE_LINKS.md#by-course-modu
 
 ### Separation of concerns
 
-```text
-GraphQL layer     →  resolvers/index.ts     (HTTP/GraphQL ↔ service calls)
-Service layer     →  services/employeeService.ts  (business rules, source switch)
-PeopleSoft layer  →  peoplesoft/*           (mock, IB client, dating, CSV)
+```mermaid
+flowchart TB
+  GQL[GraphQL layer<br/>resolvers/index.ts] --> SVC[Service layer<br/>employeeService.ts]
+  SVC --> PS[PeopleSoft layer<br/>peoplesoft/* mock · IB · CSV]
 ```
 
 ### Resolver example (read path)
@@ -685,16 +684,19 @@ Index: [SCRIPT_COURSE_LINKS § Module 8](./SCRIPT_COURSE_LINKS.md#by-course-modu
 
 ### App Router structure
 
-```text
-frontend/app/
-  layout.tsx          # ApolloWrapper wraps app
-  page.tsx            # Home → EmployeeList
-  employee/[id]/page.tsx  # Detail → EmployeeDetail
-frontend/components/
-  EmployeeList.tsx
-  EmployeeDetail.tsx
-  EmployeeForm.tsx
-  ApolloWrapper.tsx
+```mermaid
+flowchart TD
+  subgraph APP[frontend/app]
+    L[layout.tsx · ApolloWrapper]
+    P[page.tsx · EmployeeList]
+    D[employee/id/page.tsx · EmployeeDetail]
+  end
+  subgraph COMP[frontend/components]
+    EL[EmployeeList.tsx]
+    ED[EmployeeDetail.tsx]
+    EF[EmployeeForm.tsx]
+    AW[ApolloWrapper.tsx]
+  end
 ```
 
 ### Client components
@@ -758,12 +760,11 @@ Side 1 (resolver) is the same for both; Side 2 is chosen in `employeeService.ts`
 
 ### Frontend flow
 
-```text
-EmployeeForm (modal)
-  → useMutation(CREATE_EMPLOYEE | UPDATE_EMPLOYEE)
-  → refetchQueries: ["GetEmployeesPage"]
-EmployeeList
-  → Delete button → useMutation(DELETE_EMPLOYEE)
+```mermaid
+flowchart LR
+  EF[EmployeeForm] -->|CREATE/UPDATE mutation| GQL[GraphQL]
+  EL[EmployeeList] -->|DELETE mutation| GQL
+  GQL -->|refetch GetEmployeesPage| EF
 ```
 
 ### Lab 9.1
@@ -853,11 +854,12 @@ Your integration checklist with the PS team:
 
 ### Production path
 
-```text
-Manager SSO → Next.js session → GraphQL BFF
-  → IB REST as that manager (not shared HR admin)
-  → PeopleCode/CI/Query as %OperatorId
-  → Row-level security applied
+```mermaid
+flowchart TB
+  SSO[Manager SSO] --> NX[Next.js session] --> BFF[GraphQL BFF]
+  BFF -->|IB REST as manager| IB[Integration Broker]
+  IB --> PC[PeopleCode/CI/Query %OperatorId]
+  PC --> RLS[Row-level security applied]
 ```
 
 ### Read thoroughly
@@ -982,65 +984,22 @@ Connect Cursor: see [`apollo-mcp/cursor-mcp.example.json`](../apollo-mcp/cursor-
 
 ## File map (cheat sheet)
 
-```text
-FRONTEND
-  app/page.tsx                 Home
-  app/employee/[id]/page.tsx   Detail route
-  components/EmployeeList.tsx  List + pagination + CRUD buttons
-  components/EmployeeForm.tsx    Add/Edit modal + mutations
-  components/EmployeeDetail.tsx  Detail + date + CRUD
-  components/ApolloWrapper.tsx   Apollo provider
-  lib/apollo-client.ts         Client URI /api/graphql
-  next.config.ts               Rewrite to :4000
-
-BACKEND
-  server.ts                    Entry + bootstrap
-  graphql/schema.ts            Contract
-  graphql/context.ts           DI EmployeeService
-  resolvers/index.ts           Query/Mutation/field resolvers
-  services/employeeService.ts  Source switch + CRUD
-  peoplesoft/employeeStore.ts  Mutable store + CSV
-  peoplesoft/loadMockJobRows.ts  Load CSV/sheet/generate
-  peoplesoft/integrationBrokerClient.ts  Real/mock IB HTTP
-  peoplesoft/mappers.ts        PS JSON → EmployeeRecord
-  peoplesoft/effectiveDating.ts
-  mock-ib-server.ts            Port 4100
-  data/employees.csv           Dataset (runtime mock data)
-
-Courses/
-  README.md                    Course hub + module map
-  COURSE.md                    This file (modules 0–12)
-  SCRIPT_COURSE_LINKS.md       npm ↔ script file ↔ module (two-way)
-  DOCKER_AND_IB_CONFIGURE.md
-  TEAM_BOUNDARIES.md
-  CODE_PATH_GRAPHQL_TO_PS.md
-  GOOGLE_SHEETS.md
-  GOOGLE_SHEET_AS_MOCK_PS.md
-  google-apps-script-mock-ps.gs
-  PEOPLESOFT_IB_ROW_SECURITY.md
-  MODULE_13_APOLLO_MCP_AGENTS.md  Section 13 (Advanced): Apollo MCP + agents
-
-apollo-mcp/
-  mcp.local.yaml                  Apollo MCP Server config
-  schema.graphql                  SDL for MCP
-  operations/*.graphql            MCP tools (named operations)
-  cursor-mcp.example.json         Cursor MCP config example
-
-scripts/
-  run-apollo-mcp.sh               npm run dev:mcp
-  install-apollo-mcp.sh           npm run mcp:install
-  stop-dev-stack.sh            npm run stack:stop
-  bump-patch-version.mjs       version:patch / pre-commit
-  setup-git-hooks.mjs          npm run prepare
-
-backend/scripts/
-  export-employees-csv.ts      npm run export:employees
-  sync-employees-from-sheet.ts npm run sync:sheet
-
-docker-compose.yml             npm run stack:docker
-docker-compose.real-ps.example.yml
-
-ROOT package.json              all npm run commands (see SCRIPT_COURSE_LINKS.md)
+```mermaid
+flowchart TD
+  subgraph FE[FRONTEND]
+    FE1[app/ · components/ EmployeeList Form Detail]
+    FE2[lib/apollo-client · next.config → :4000]
+  end
+  subgraph BE[BACKEND]
+    BE1[server.ts · graphql/ · resolvers/]
+    BE2[services/employeeService.ts]
+    BE3[peoplesoft/ store · IB client · mappers · effdate]
+    BE4[mock-ib-server.ts :4100 · data/employees.csv]
+  end
+  subgraph DOC[Courses · tooling]
+    DOC1[COURSE · CODE_PATH · DOCKER · TEAM_BOUNDARIES · §13 MCP]
+    DOC2[apollo-mcp/ · scripts/ · docker-compose]
+  end
 ```
 
 ---

@@ -13,12 +13,11 @@
 
 Apollo describes **Agents** as: *expose your graph and tools to AI assistants; enhance chat responses with visual components.* That breaks into three products/layers:
 
-```text
-  Agents                    Apollo MCP Server              MCP Apps Client
-  (AI host)                 (protocol + tools)             (visual UI in chat)
-       │                            │                              │
-       │   MCP: tools/resources     │   same GraphQL API           │   React iframe + @tool
-       └──────────────────────────► └──────────► BFF :4000 ◄──────┘
+```mermaid
+flowchart LR
+  AG[Agents<br/>AI host] -->|MCP tools/resources| MCP[Apollo MCP Server<br/>:8000]
+  APP[MCP Apps Client<br/>visual UI in chat] -->|@tool · iframe| MCP
+  MCP --> BFF[BFF :4000<br/>same GraphQL API]
 ```
 
 ### Compared to the core course (Modules 0–12)
@@ -63,10 +62,12 @@ Apollo describes **Agents** as: *expose your graph and tools to AI assistants; e
 | Next.js UI (humans, unchanged) | `npm run dev` | **3000** |
 | **MCP Apps Client** | **Not included** — documented as phase 2 below | (served via MCP Server resource) |
 
-```text
-Human:     Browser :3000 → /api/graphql → BFF :4000 → PeopleSoft/mock
-Agent:     Cursor    → MCP :8000/mcp  → BFF :4000 → PeopleSoft/mock   ← Layer 1+2 (this section)
-Chat UI:   ChatGPT   → MCP :8000/mcp?app=… → BFF :4000 + iframe app  ← Layer 3 (separate project)
+```mermaid
+flowchart TB
+  H[Human Browser :3000] -->|/api/graphql| BFF[BFF :4000]
+  A[Agent Cursor] -->|MCP :8000/mcp| BFF
+  C[Chat UI + MCP App] -->|MCP :8000/mcp?app=| BFF
+  BFF --> PS[PeopleSoft / mock]
 ```
 
 ---

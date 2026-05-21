@@ -2,7 +2,25 @@
 
 Next.js UI → Apollo GraphQL (port **4000**) → **mock** PeopleSoft data → swap to **Integration Broker REST**.
 
+<p align="center">
+  <img
+    src="./Courses/images/peoplesoft-graphql-architecture.png"
+    alt="PeopleSoft with GraphQL - Course Architecture"
+    width="720"
+  />
+</p>
+
+```mermaid
+flowchart TB
+  UI["Next.js UI<br/>:3000 local · :3001 Docker"]
+  BFF["Apollo GraphQL BFF<br/>:4000"]
+  IB["Integration Broker REST<br/>:4100"]
+  UI -->|/api/graphql| BFF
+  BFF -->|PS_BASE_URL| IB
+```
+
 **Course hub:** [Courses/README.md](./Courses/README.md) (module map + commands)  
+**Course intro:** [Courses/INTRODUCTION.md](./Courses/INTRODUCTION.md) (PeopleSoft + GraphQL in ~15 min)  
 **Full-stack course:** [Courses/COURSE.md](./Courses/COURSE.md) (Modules 0–12)  
 **Scripts ↔ course (two-way):** [Courses/SCRIPT_COURSE_LINKS.md](./Courses/SCRIPT_COURSE_LINKS.md)  
 **App vs PeopleSoft team:** [Courses/TEAM_BOUNDARIES.md](./Courses/TEAM_BOUNDARIES.md)  
@@ -42,8 +60,9 @@ Paste errors like `^[[200~cd` happen when bracketed paste is on — type command
 
 Runs the full stack with a **mock Integration Broker** pretending to be PeopleSoft on your network:
 
-```text
-frontend :3001  →  backend :4000  →  mock-ps :4100  (fake IB REST; host UI port — see table below)
+```mermaid
+flowchart LR
+  FE[frontend :3001] --> BE[backend :4000] --> PS[mock-ps :4100<br/>fake IB REST]
 ```
 
 ```bash
@@ -77,12 +96,16 @@ npm run dev
 
 ## Architecture
 
-```text
-Browser
-  → Next.js (3000)  /api/graphql rewrite
-  → Apollo Server (4000)
-  → EmployeeService
-  → mock data | Integration Broker REST
+See [Courses/INTRODUCTION.md](./Courses/INTRODUCTION.md) for the full narrative.
+
+```mermaid
+flowchart TB
+  BR[Browser]
+  NX[Next.js :3000<br/>/api/graphql rewrite]
+  AP[Apollo Server :4000]
+  ES[EmployeeService]
+  DATA[mock data · Integration Broker REST]
+  BR --> NX --> AP --> ES --> DATA
 ```
 
 ### Two sides (and why it matters at work)
@@ -94,11 +117,15 @@ In many organizations **your app team** owns Side 1; a **PeopleSoft team** owns 
 | **1 — App** | Next.js UI + GraphQL BFF (ports 3000 / 4000) | GraphQL (`employees`, mutations) — **your** frontend only talks here |
 | **2 — PeopleSoft** | Integration Broker REST (or local stand-in) | HTTP + JSON (`EMPLID`, `EMAIL_ADDR`, …) — **between teams**, not GraphQL |
 
-```text
-┌─────────────────────────────┐         ┌────────────────────────────────┐
-│  Side 1 (this repo)         │         │  Side 2 (often another team) │
-│  Frontend → GraphQL BFF     │  HTTP   │  Integration Broker → PS       │
-└─────────────────────────────┘         └────────────────────────────────┘
+```mermaid
+flowchart LR
+  subgraph S1["Side 1 — this repo"]
+    FE[Frontend] --> GQL[GraphQL BFF]
+  end
+  subgraph S2["Side 2 — PeopleSoft team"]
+    IB[Integration Broker] --> PS[PeopleSoft]
+  end
+  GQL -->|HTTP| IB
 ```
 
 - **`PEOPLESOFT_DATA_SOURCE=mock`** — Side 2 is local CSV/memory (no PS team, no HTTP).
@@ -199,18 +226,21 @@ query {
 
 ## Project layout
 
-```text
-backend/src/
-  graphql/          # schema
-  resolvers/        # GraphQL resolvers
-  peoplesoft/       # mock + IB client + mappers
-    mockIntegrationBroker/  # mock PS REST (port 4100)
-  mock-ib-server.ts # entrypoint for mock PS
-  services/         # employeeService (data source switch)
-frontend/
-  app/              # Next.js pages
-  components/       # EmployeeList, ApolloWrapper
-  lib/              # Apollo client
+```mermaid
+flowchart TD
+  subgraph BE[backend/src]
+    G[graphql/ schema]
+    R[resolvers/]
+    P[peoplesoft/ mock · IB · mappers]
+    MIB[mockIntegrationBroker/ :4100]
+    MIBS[mock-ib-server.ts]
+    S[services/ employeeService]
+  end
+  subgraph FE[frontend]
+    A[app/ pages]
+    C[components/ EmployeeList · ApolloWrapper]
+    L[lib/ apollo-client]
+  end
 ```
 
 # Google Sheets as the employee source

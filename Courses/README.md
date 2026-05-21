@@ -2,6 +2,8 @@
 
 Hands-on curriculum: **browser → GraphQL BFF → PeopleSoft (mock CSV, mock IB, Docker, real IB)**.
 
+![PeopleSoft with GraphQL — Course Architecture](./images/peoplesoft-graphql-architecture.png)
+
 **Terminology:** **Modules** 0–12 are the core path. **Sections** (e.g. **Section 13**) are optional advanced topics — not “sessions.”
 
 ---
@@ -10,6 +12,7 @@ Hands-on curriculum: **browser → GraphQL BFF → PeopleSoft (mock CSV, mock IB
 
 | Doc | Use when |
 |-----|----------|
+| **[INTRODUCTION.md](./INTRODUCTION.md)** | **New learners** — what PeopleSoft + GraphQL mean here (~15 min); architecture diagram + Mermaid flows |
 | **[COURSE.md](./COURSE.md)** | Main path — Modules 0–12, labs, checkpoints |
 | **[SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md)** | Every `npm run` ↔ script file ↔ module (**two-way**; **To pick** if several modules fit) |
 
@@ -72,7 +75,8 @@ Full command list: **[SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md)**.
 
 ## Suggested order
 
-1. [COURSE.md](./COURSE.md) Modules **0 → 12** in sequence  
+1. [INTRODUCTION.md](./INTRODUCTION.md) — concepts and architecture (~15 min)  
+2. [COURSE.md](./COURSE.md) Modules **0 → 12** in sequence  
 2. [SCRIPT_COURSE_LINKS.md](./SCRIPT_COURSE_LINKS.md) whenever you run a command  
 3. Supplemental docs as linked from each module’s **Read** section  
 

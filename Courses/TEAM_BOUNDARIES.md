@@ -8,19 +8,22 @@ At many organizations, **your application team** and the **PeopleSoft platform t
 
 ## Two sides of the system
 
-```text
-┌─────────────────────────────────────┐     ┌──────────────────────────────────────┐
-│  SIDE 1 — Your team (this repo)     │     │  SIDE 2 — PeopleSoft team            │
-│                                     │     │                                      │
-│  Next.js UI (:3000)                 │     │  PeopleSoft tables & business rules  │
-│       │                             │     │  Integration Broker REST services    │
-│       ▼ GraphQL only                │     │  Row security, effective dating      │
-│  Apollo BFF (:4000)                 │     │  Auth for IB (Basic / OAuth / SSO)   │
-│       │                             │     │                                      │
-│       ▼                             │     │                                      │
-│  EmployeeService                    │────►│  HTTP contract (not GraphQL)         │
-│  integrationBrokerClient.ts         │     │  PS_BASE_URL + JSON field names      │
-└─────────────────────────────────────┘     └──────────────────────────────────────┘
+```mermaid
+flowchart LR
+  subgraph S1["SIDE 1 — Your team"]
+    UI[Next.js UI :3000]
+    BFF[Apollo BFF :4000]
+    ES[EmployeeService<br/>integrationBrokerClient.ts]
+    UI -->|GraphQL only| BFF --> ES
+  end
+  subgraph S2["SIDE 2 — PeopleSoft team"]
+    T[PS tables · business rules]
+    IB[Integration Broker REST]
+    SEC[Row security · effdt · auth]
+    IB --> T
+    SEC --- IB
+  end
+  ES -->|HTTP JSON · not GraphQL| IB
 ```
 
 **Side 1 is fixed** in this project: the browser always talks GraphQL to your BFF. The frontend never calls PeopleSoft directly.

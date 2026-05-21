@@ -29,9 +29,10 @@ After this module you can:
 
 ### What `mock-ps` actually is
 
-```text
-mock-ps (Docker)  = fake Integration Broker REST  →  good for local / course / CI
-real PeopleSoft     = PS team servers + IB on your site  →  production
+```mermaid
+flowchart LR
+  MOCK[mock-ps Docker<br/>fake IB REST] -->|local · course · CI| DEV[Developer laptop]
+  REAL[real PeopleSoft<br/>PS team IB] -->|production| PROD[Your organization site]
 ```
 
 The `mock-ps` service is **not** PeopleSoft and **not** Oracle. It only **imitates** IB REST so your GraphQL BFF practices the same HTTP contract (`PS_BASE_URL`, Basic auth, JSON shape).
@@ -64,10 +65,17 @@ The `mock-ps` service is **not** PeopleSoft and **not** Oracle. It only **imitat
 
 ### Production pattern (recommended)
 
-```text
-Your Docker / Kubernetes:     frontend + backend  (GraphQL BFF)
-Your organization’s site:     PeopleSoft Integration Broker  (PS team)
-                              → PeopleCode / CI / Oracle (inside PS — you do not containerize this)
+```mermaid
+flowchart TB
+  subgraph YOU[Your Docker / Kubernetes]
+    FE[frontend] --> BE[backend GraphQL BFF]
+  end
+  subgraph PSORG[Your organization site · PS team]
+    IB[PeopleSoft Integration Broker]
+    PC[PeopleCode / CI / Oracle<br/>not containerized by you]
+    IB --> PC
+  end
+  BE -->|REST| IB
 ```
 
 | Environment | PS “component” |
@@ -94,13 +102,10 @@ This section answers: **why Docker here is only for dev**, and **how production 
 
 What you run on a laptop or in CI to learn the **same three-layer pattern** as production, without a real PeopleSoft site:
 
-```text
-┌─────────────┐     GraphQL      ┌─────────────┐     REST (mock)    ┌─────────────┐
-│  Next.js    │ ───────────────► │  backend    │ ───────────────► │  mock-ps    │
-│  :3000/3001 │   /api/graphql   │  :4000      │   PS_BASE_URL    │  :4100      │
-└─────────────┘                  └─────────────┘                  └─────────────┘
-                                 PEOPLESOFT_DATA_SOURCE=          fake IB only
-                                 integration-broker
+```mermaid
+flowchart LR
+  NX[Next.js :3000/3001] -->|GraphQL /api/graphql| BE[backend :4000<br/>integration-broker]
+  BE -->|REST PS_BASE_URL| MOCK[mock-ps :4100<br/>fake IB only]
 ```
 
 | How you start it | Command | Includes `mock-ps`? |
@@ -115,13 +120,11 @@ What you run on a laptop or in CI to learn the **same three-layer pattern** as p
 
 What actually runs when managers use the real HR system:
 
-```text
-┌─────────────┐     GraphQL      ┌─────────────┐     REST (real)    ┌─────────────────────────┐
-│  Next.js    │ ───────────────► │  backend    │ ───────────────► │  PeopleSoft             │
-│  (your host)│   SSO session    │  (your host)│   PS_BASE_URL    │  Integration Broker     │
-└─────────────┘                  └─────────────┘                  │  → PeopleCode / Oracle  │
-                                                                    │  (PS team — not Docker) │
-                                                                    └─────────────────────────┘
+```mermaid
+flowchart LR
+  NX[Next.js · your host] -->|GraphQL SSO session| BE[backend · your host]
+  BE -->|REST PS_BASE_URL| IB[PeopleSoft Integration Broker]
+  IB --> PS[PeopleCode / Oracle<br/>PS team · not Docker]
 ```
 
 | Component | In production | Who operates it |
@@ -204,12 +207,12 @@ Build: `npm run build` in `frontend/` and `backend/` per your deployment pipelin
 
 Deploy **only** what your team owns:
 
-```text
-Production deployable units:
-  ✅ frontend (Next.js or static export + server)
-  ✅ backend (Apollo GraphQL BFF)
-  ❌ mock-ps
-  ❌ peoplesoft Oracle DB connection from your containers
+```mermaid
+flowchart TD
+  OK1[✅ frontend]
+  OK2[✅ backend Apollo BFF]
+  NO1[❌ mock-ps]
+  NO2[❌ direct Oracle from your containers]
 ```
 
 **If you use Docker in production** for your app only (optional):
@@ -272,10 +275,11 @@ Before go-live:
 
 ### Architecture
 
-```text
-Browser → frontend :3001  (Docker host port; container listens on 3000)
-            → backend :4000  (GraphQL BFF)
-                → mock-ps :4100  (fake Integration Broker)
+```mermaid
+flowchart TB
+  BR[Browser] --> FE[frontend :3001]
+  FE --> BE[backend :4000]
+  BE --> MOCK[mock-ps :4100]
 ```
 
 Local `npm run dev:mock-ps` uses **:3000** for the UI instead of :3001.
@@ -332,14 +336,14 @@ Your **PeopleSoft team** configures IB in **PeopleTools**. Your app only consume
 
 ### Typical navigation
 
-```text
-PeopleTools
-  → Integration Broker
-      → Integration Setup
-          → Services              (REST service definition)
-          → Service Operations    (GET /employees, GET /employee/{id}, …)
-          → Routings              (gateway, node, permission list)
-          → Service Activity      (monitor / test)
+```mermaid
+flowchart TD
+  PT[PeopleTools] --> IB[Integration Broker]
+  IB --> SETUP[Integration Setup]
+  SETUP --> SVC[Services · REST definition]
+  SETUP --> OPS[Service Operations<br/>GET /employees · GET /employee/id]
+  SETUP --> RT[Routings · gateway · permissions]
+  SETUP --> ACT[Service Activity · monitor/test]
 ```
 
 You rarely “configure IB” in this repo — you copy **URL + credentials + JSON samples** into `backend/.env`.
@@ -380,8 +384,9 @@ What our **mock** exposes on port 4100 is what you should ask the PS team to doc
 
 **Example real URL pattern** (site-specific):
 
-```text
-https://<host>/psc/ps/<NODE>/<PORTAL>/s/<WEBLIB_REST>.<version>
+```mermaid
+flowchart LR
+  URL["https://host/psc/ps/NODE/PORTAL/s/WEBLIB_REST.version"]
 ```
 
 **Docker mock equivalent:**

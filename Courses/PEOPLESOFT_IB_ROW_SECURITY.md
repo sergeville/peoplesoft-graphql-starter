@@ -6,37 +6,13 @@ Concrete target architecture for production: end users see only the rows PeopleS
 
 ## End-to-end flow
 
-```text
-┌─────────────┐     SSO / session      ┌──────────────────┐
-│   Browser   │ ─────────────────────► │  Next.js :3000   │
-│  (Manager)  │                        │  /api/graphql    │
-└─────────────┘                        └────────┬─────────┘
-                                              │ GraphQL + user JWT/session
-                                              ▼
-                                     ┌──────────────────┐
-                                     │ Apollo BFF :4000 │
-                                     │ EmployeeService  │
-                                     │ + auth middleware (target)│
-                                     └────────┬─────────┘
-                                              │ REST + PS user context
-                                              ▼
-                                     ┌──────────────────┐
-                                     │ Integration      │
-                                     │ Gateway / IB REST│
-                                     └────────┬─────────┘
-                                              │ Service operation
-                                              ▼
-                                     ┌──────────────────┐
-                                     │ PeopleCode / CI  │
-                                     │ or secure Query  │
-                                     │ runs as Operator │
-                                     └────────┬─────────┘
-                                              │ Row-level security
-                                              ▼
-                                     ┌──────────────────┐
-                                     │ PS tables        │
-                                     │ PS_JOB, NAMES…   │
-                                     └──────────────────┘
+```mermaid
+flowchart TB
+  BR[Browser · Manager] -->|SSO session| NX[Next.js :3000]
+  NX -->|GraphQL + JWT| BFF[Apollo BFF :4000<br/>auth middleware]
+  BFF -->|REST + PS user context| GW[Integration Gateway / IB REST]
+  GW -->|Service operation| PC[PeopleCode / CI / Query<br/>runs as Operator]
+  PC -->|Row-level security| TBL[PS tables PS_JOB NAMES]
 ```
 
 ## Golden rule
@@ -79,23 +55,23 @@ Validate in the UI first: log in as `MGR01` → employee list / team view shows 
 
 **Option A — Component Interface (preferred for updates)**
 
-```text
-GET_EMPLOYEES
-  → PeopleCode
-  → %OperatorId = authenticated user (from REST signon)
-  → CI_JOB (or custom CI) Find() with standard keys
-  → PeopleSoft applies row security on CI
-  → Build JSON array → return
+```mermaid
+flowchart TD
+  OP[GET_EMPLOYEES] --> PC[PeopleCode]
+  PC --> OID["%OperatorId = authenticated user"]
+  OID --> CI[CI_JOB Find]
+  CI --> RLS[PS applies row security]
+  RLS --> JSON[Build JSON array]
 ```
 
 **Option B — Secure Query**
 
-```text
-GET_EMPLOYEES
-  → Run Query EMPLOYEE_LIST_MGR (Query Manager)
-  → Query run as %OperatorId
-  → Query security + row security applied
-  → Export rows to JSON
+```mermaid
+flowchart TD
+  OP[GET_EMPLOYEES] --> Q[Query EMPLOYEE_LIST_MGR]
+  Q --> OID[Run as %OperatorId]
+  OID --> SEC[Query + row security]
+  SEC --> JSON[Export JSON]
 ```
 
 **Option C — Delivered REST (if licensed)**
@@ -141,12 +117,12 @@ type GraphQLContext = {
 
 ### Middleware (sketch)
 
-```text
-1. Read Authorization header / session cookie
-2. Validate JWT (IdP or your session store)
-3. Map to PS credentials or PS token for this user
-4. Reject if missing (no anonymous employee list)
-5. Pass psAuth into IntegrationBrokerClient per request
+```mermaid
+flowchart TD
+  A[1 Read Authorization / session cookie] --> B[2 Validate JWT]
+  B --> C[3 Map to PS credentials or token]
+  C --> D[4 Reject if missing]
+  D --> E[5 Pass psAuth to IntegrationBrokerClient]
 ```
 
 ### Client call (sketch)

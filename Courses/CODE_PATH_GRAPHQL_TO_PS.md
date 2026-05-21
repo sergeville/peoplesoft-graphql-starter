@@ -23,23 +23,19 @@ To **see the call in code**, use mode **B**.
 
 **Course:** [Module 6](./COURSE.md#module-6--peoplesoft-data-layer-mock--csv) · **Run:** [`npm run dev`](../package.json) · **Data scripts:** [`export-employees-csv.ts`](../backend/scripts/export-employees-csv.ts), [`sync-employees-from-sheet.ts`](../backend/scripts/sync-employees-from-sheet.ts)
 
-```text
-Browser (EmployeeForm.tsx)
-  useMutation(createEmployee | updateEmployee)
-    → POST http://localhost:3000/api/graphql
-
-Next.js rewrite (next.config.ts)
-    → POST http://localhost:4000/
-
-Apollo resolvers (resolvers/index.ts)
-  Mutation.createEmployee → employeeService.createEmployee()
-
-EmployeeService (employeeService.ts)
-  if dataSource === "mock" → createEmployeeInStore()
-
-EmployeeStore (employeeStore.ts)
-  create/update: allJobRows.push(...) → persistToCsv()
-  deleteEmployee: terminateEmployeeInStore() → new row hr_status=I → persistToCsv()  (no row removal)
+```mermaid
+sequenceDiagram
+  participant UI as EmployeeForm
+  participant NX as Next.js :3000
+  participant AP as Apollo :4000
+  participant R as resolvers
+  participant S as employeeService
+  participant ST as employeeStore
+  UI->>NX: useMutation create/update
+  NX->>AP: POST /api/graphql
+  AP->>R: Mutation.createEmployee
+  R->>S: createEmployee
+  S->>ST: createEmployeeInStore + persistToCsv
 ```
 
 **Files to open:**
@@ -61,51 +57,34 @@ Google Sheet is **not** in this path. Update Sheet manually: **File → Import**
 
 ### Read (employee list)
 
-```text
-EmployeeList.tsx
-  useQuery(GET_EMPLOYEES_PAGE)
-    → POST /api/graphql
-
-resolvers/index.ts
-  Query.employees → employeeService.listEmployees()
-
-employeeService.ts
-  if integration-broker → integrationBrokerClient.fetchEmployees()
-    → fetch("http://localhost:4100/employees?limit=50&offset=0")   ← LOOK HERE
-
-integrationBrokerClient.ts  (fetchEmployees → request())
-  buildUrl("/employees") + Authorization: Basic ...
-  console.log `[Integration Broker] GET …` in backend terminal
-  response.json() → mapIntegrationBrokerEmployee()
-
-mockIntegrationBroker/server.ts
-  GET /employees → listPsBrokerEmployees() → JSON rows
-
-mappers.ts
-  EMPLID, NAME, EMAIL_ADDR → EmployeeRecord
+```mermaid
+sequenceDiagram
+  participant EL as EmployeeList
+  participant R as resolvers
+  participant S as employeeService
+  participant IB as integrationBrokerClient
+  participant M as mock-ib :4100
+  EL->>R: Query.employees
+  R->>S: listEmployees
+  S->>IB: GET /employees
+  IB->>M: HTTP + Basic auth
+  M-->>EL: mapIntegrationBrokerEmployee
 ```
 
 ### Write (add / edit / delete)
 
 > **PeopleSoft reality:** PS does **not** hard-delete job rows. A “delete” is a **new effective-dated row** with **`EFFDT`** + **`HR_STATUS`** (e.g. `I` = inactive). History stays for audit and as-of queries. **This app matches that:** `deleteEmployee` calls `terminateEmployeeInStore()` (appends a row with `hr_status=I`) or IB **PUT** with `effdt` + `hrStatus` — see [§ PS terminate vs delete](#ps-terminate-vs-delete).
 
-```text
-EmployeeForm.tsx
-  useMutation(CREATE_EMPLOYEE)
-
-resolvers/index.ts
-  Mutation.createEmployee
-
-employeeService.ts
-  integration-broker → integrationBrokerClient.createEmployee(input)
-    → fetch("http://localhost:4100/employees", { method: "POST", body: JSON })   ← camelCase today, no outbound mapper
-  deleteEmployee → integrationBrokerClient.deleteEmployee()
-    → fetch PUT /employee/{emplid} { effdt, hrStatus: "I" }   ← terminate, not HTTP DELETE
-
-mockIntegrationBroker/server.ts
-  POST /employees → createEmployeeInStore() → employees.csv
-  PUT /employee/{id} (hrStatus I) or DELETE alias → terminateEmployeeInStore()
-  console.log("[Mock PS IB] POST /employees", ...)
+```mermaid
+sequenceDiagram
+  participant EF as EmployeeForm
+  participant S as employeeService
+  participant IB as integrationBrokerClient
+  participant M as mock-ib
+  EF->>S: createEmployee
+  S->>IB: POST /employees
+  IB->>M: createEmployeeInStore
+  Note over S,IB: deleteEmployee → PUT terminate hrStatus I
 ```
 
 **Open `integrationBrokerClient.ts`** — every `fetch()` is the “call to PeopleSoft” (mock or real). JSDoc on `deleteEmployee`, `createEmployee`, etc. explains **why** (terminate vs DELETE).  
@@ -149,18 +128,18 @@ Watch terminals when you use the UI (`npm run dev:mock-ps` labels them **`[backe
 | `mapper` | `peoplesoft/mappers.ts` |
 | `jobHistory` | `peoplesoft/jobHistory.ts` |
 
-```text
-[trace] graphql · request — {"operation":"GetEmployeesPage",...}
-[trace] resolver · Query.employees() — {"limit":50,"offset":0}
-[trace] service · listEmployees() — {"asOfDate":null,"limit":50,"offset":0}
-[trace] integration-broker · fetchEmployees() — {"limit":50,"offset":0}
-[trace] integration-broker · request() — {"method":"GET","path":"/employees"}
-[trace] mock-ib · handleRequest() — {"method":"GET","path":"/employees?limit=50"}
-[trace] mock-ib · readPagination()
-[trace] payloads · listPsBrokerEmployees() — {"limit":50,"offset":0}
-[trace] effdate · pickActiveEffectiveRow() — {"rowCount":3}
-[trace] payloads · listPsBrokerEmployees() ← — {"count":50}
-[trace] graphql · response — {"operation":"GetEmployeesPage","ms":42}
+```mermaid
+sequenceDiagram
+  participant G as graphql
+  participant R as resolver
+  participant S as service
+  participant IB as integration-broker
+  participant M as mock-ib
+  G->>R: Query.employees
+  R->>S: listEmployees
+  S->>IB: fetchEmployees
+  IB->>M: GET /employees
+  M-->>G: response
 ```
 
 **Console + files:** `npm run dev:mock-ps` tees **`[mock-ps]`**, **`[backend]`**, **`[frontend]`** to `logs/*.log` and the terminal. Tail with `npm run logs` or `npm run logs:follow`. Plain stack (no log files): `npm run dev:mock-ps:plain`.
@@ -179,10 +158,11 @@ Your sheet can **be** the mock PeopleSoft server:
 2. Set `PS_BASE_URL` to the Apps Script web app URL
 3. Same `integrationBrokerClient.ts` `fetch()` calls — but data reads/writes **your Sheet**
 
-```text
-GraphQL → integrationBrokerClient.fetch()
-       → https://script.google.com/macros/s/.../exec?path=employees
-       → Apps Script reads/writes spreadsheet "Peoplesoft muck"
+```mermaid
+flowchart LR
+  GQL[GraphQL] --> IB[integrationBrokerClient.fetch]
+  IB --> GS[Apps Script URL]
+  GS --> SH[Google Sheet]
 ```
 
 ---
