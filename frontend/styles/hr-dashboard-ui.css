@@ -1,0 +1,56 @@
+/**
+ * HR Management Dashboard polish — blue + lime SaaS cards.
+ * Reference: public/hr-dashboard-reference.png
+ */
+
+html[data-theme="hr-dashboard"] {
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+html[data-theme="hr-dashboard"] .app-header__brand {
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.8rem;
+}
+
+html[data-theme="hr-dashboard"] .app-header__mark {
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 999px;
+}
+
+html[data-theme="hr-dashboard"] .app-tabbar__item--active {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+}
+
+html[data-theme="hr-dashboard"] .employee-card,
+html[data-theme="hr-dashboard"] .detail-panel,
+html[data-theme="hr-dashboard"] .search-field {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+html[data-theme="hr-dashboard"] .employee-card__avatar {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+html[data-theme="hr-dashboard"] .badge {
+  color: var(--accent-lime);
+  background: var(--accent-lime-soft);
+  border: none;
+}
+
+html[data-theme="hr-dashboard"] .btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+html[data-theme="hr-dashboard"] .fact-row--salary dd {
+  color: var(--accent);
+  font-weight: 700;
+}

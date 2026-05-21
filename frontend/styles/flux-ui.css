@@ -1,0 +1,114 @@
+/**
+ * Flux layout polish — matches them.png reference (dark + yellow accent).
+ * Only active when html[data-theme="flux"].
+ */
+
+html[data-theme="flux"] {
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+
+html[data-theme="flux"] .app-header {
+  border-bottom-color: #2a2a2a;
+}
+
+html[data-theme="flux"] .app-header__brand {
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+
+html[data-theme="flux"] .app-header__mark {
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 6px;
+  background: var(--accent);
+  color: transparent;
+  transform: rotate(45deg);
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.35);
+}
+
+html[data-theme="flux"] .app-header__mark::after {
+  content: none;
+}
+
+html[data-theme="flux"] .app-tabbar__item--active {
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+}
+
+html[data-theme="flux"] .search-field,
+html[data-theme="flux"] .employee-card,
+html[data-theme="flux"] .detail-panel {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--border) 85%, var(--muted));
+  box-shadow: var(--shadow);
+}
+
+html[data-theme="flux"] .employee-card__avatar {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  font-weight: 800;
+}
+
+html[data-theme="flux"] .badge {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+html[data-theme="flux"] .btn-primary {
+  color: #121212;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+html[data-theme="flux"] .btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+html[data-theme="flux"] .btn-secondary {
+  background: var(--surface-raised);
+  border-color: var(--border);
+}
+
+html[data-theme="flux"] .profile-hero__avatar {
+  background: radial-gradient(
+    circle at 30% 20%,
+    rgba(250, 204, 21, 0.35),
+    var(--surface-raised) 65%
+  );
+  color: var(--accent);
+  border: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: var(--shadow-lg);
+}
+
+html[data-theme="flux"] .profile-hero__name {
+  font-size: 1.5rem;
+}
+
+html[data-theme="flux"] .fact-row dd strong,
+html[data-theme="flux"] .employee-link {
+  color: var(--text);
+}
+
+html[data-theme="flux"] .page-hero p {
+  border-left: 3px solid var(--accent);
+  padding-left: 0.75rem;
+}
+
+html[data-theme="flux"] .history-card {
+  border-style: dashed;
+}
+
+html[data-theme="flux"] .fact-row--salary dd {
+  color: var(--accent-orange);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+html[data-theme="flux"] .theme-switcher__select {
+  background: var(--surface-raised);
+  border-color: var(--border);
+}

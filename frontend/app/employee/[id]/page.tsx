@@ -10,10 +10,15 @@ export default async function EmployeePage({ params }: PageProps) {
   const { id } = await params;
 
   return (
-    <main>
-      <Suspense fallback={<p className="muted">Loading…</p>}>
-        <EmployeeDetail emplid={id} />
-      </Suspense>
-    </main>
+    <Suspense
+      fallback={
+        <div className="loading-block" role="status">
+          <span className="spinner" aria-hidden />
+          Loading profile…
+        </div>
+      }
+    >
+      <EmployeeDetail emplid={id} />
+    </Suspense>
   );
 }

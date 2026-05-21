@@ -1,0 +1,11 @@
+{
+  "name": "Employee Directory",
+  "short_name": "Employees",
+  "description": "Browse and manage employees via GraphQL",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#1d4ed8",
+  "orientation": "portrait-primary",
+  "icons": []
+}

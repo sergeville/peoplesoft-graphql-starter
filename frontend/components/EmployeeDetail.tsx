@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { EmployeeForm, type EmployeeFormValues } from "@/components/EmployeeForm";
+import { employeeInitials, formatSalary } from "@/lib/format";
 
 const GET_EMPLOYEE = gql`
   query GetEmployee($id: ID!, $asOfDate: String) {
@@ -85,44 +86,89 @@ export function EmployeeDetail({ emplid }: { emplid: string }) {
   }
 
   if (loading) {
-    return <p className="muted">Loading employee…</p>;
+    return (
+      <div className="loading-block" role="status">
+        <span className="spinner" aria-hidden />
+        Loading profile…
+      </div>
+    );
   }
 
   if (error) {
-    return <p className="error">GraphQL error: {error.message}</p>;
+    return <p className="error">Could not load profile: {error.message}</p>;
   }
 
   const employee = data?.employee;
   if (!employee) {
-    return <p className="error">Employee {emplid} not found for this date.</p>;
+    return (
+      <p className="error">Employee {emplid} not found for the selected date.</p>
+    );
   }
 
   return (
     <section className="detail">
-      <Link href="/" className="back-link">
-        ← All employees
-      </Link>
+      <div className="detail-panel profile-hero">
+        <div className="profile-hero__avatar" aria-hidden>
+          {employeeInitials(employee.name)}
+        </div>
+        <div>
+          <h2 className="profile-hero__name">{employee.name}</h2>
+          <p className="profile-hero__id">EMPLID {employee.emplid}</p>
+          {employee.position ? (
+            <p className="profile-hero__id">{employee.position}</p>
+          ) : null}
+        </div>
+      </div>
 
-      <div className="date-bar">
-        <label htmlFor="asOfDate">As-of date (PeopleSoft effective dating)</label>
+      <div className="detail-panel date-bar">
+        <label htmlFor="asOfDate">As-of date</label>
         <DateControls
           asOfDate={asOfDate}
           onChange={setAsOfDate}
           onApply={applyDate}
         />
-        <p className="muted hint">
-          Try Jane Doe (100001): <code>2024-12-01</code> vs <code>2026-01-01</code>{" "}
-          to see title/salary change.
+        <p className="hint">
+          PeopleSoft effective dating — try Jane Doe (100001):{" "}
+          <code>2024-12-01</code> vs <code>2026-01-01</code>.
         </p>
       </div>
 
-      <header className="detail-header">
-        <h1>{employee.name}</h1>
-        <span className="badge">{employee.emplid}</span>
-        <div className="card-actions" style={{ marginLeft: "auto" }}>
+      <div className="detail-panel">
+        <dl className="facts">
+          <div className="fact-row">
+            <dt>Email</dt>
+            <dd>{employee.email ?? "—"}</dd>
+          </div>
+          <div className="fact-row">
+            <dt>Department</dt>
+            <dd>{employee.department ?? "—"}</dd>
+          </div>
+          <div className="fact-row fact-row--salary">
+            <dt>Salary</dt>
+            <dd>{formatSalary(employee.salary)}</dd>
+          </div>
+          <div className="fact-row">
+            <dt>Manager</dt>
+            <dd>
+              {employee.manager ? (
+                <Link href={`/employee/${employee.manager.emplid}`}>
+                  {employee.manager.name}
+                </Link>
+              ) : (
+                "—"
+              )}
+            </dd>
+          </div>
+          <div className="fact-row">
+            <dt>Snapshot</dt>
+            <dd>{employee.effectiveDate ?? asOfDate}</dd>
+          </div>
+        </dl>
+
+        <div className="detail-actions">
           <button
             type="button"
-            className="btn-secondary"
+            className="btn-primary"
             onClick={() => setShowEdit(true)}
           >
             Edit
@@ -132,7 +178,7 @@ export function EmployeeDetail({ emplid }: { emplid: string }) {
             className="btn-danger"
             onClick={async () => {
               const confirmed = window.confirm(
-                `Delete ${employee.name} (${employee.emplid})?`,
+                `Terminate ${employee.name} (${employee.emplid})?`,
               );
               if (!confirmed) return;
               try {
@@ -142,36 +188,33 @@ export function EmployeeDetail({ emplid }: { emplid: string }) {
                 window.alert(
                   deleteError instanceof Error
                     ? deleteError.message
-                    : "Could not delete employee.",
+                    : "Could not terminate employee.",
                 );
               }
             }}
           >
-            Delete
+            Terminate
           </button>
         </div>
-      </header>
+      </div>
 
-      <dl className="facts">
-        <dt>Email</dt>
-        <dd>{employee.email ?? "—"}</dd>
-        <dt>Department</dt>
-        <dd>{employee.department ?? "—"}</dd>
-        <dt>Manager</dt>
-        <dd>
-          {employee.manager ? (
-            <Link href={`/employee/${employee.manager.emplid}`}>
-              {employee.manager.name}
-            </Link>
-          ) : (
-            "—"
-          )}
-        </dd>
-        <dt>Snapshot date</dt>
-        <dd>{employee.effectiveDate ?? asOfDate}</dd>
-      </dl>
+      <h3 className="section-title">Job history</h3>
 
-      <h2>Job history</h2>
+      <div className="history-cards" aria-label="Job history">
+        {employee.jobHistory.map((job) => (
+          <article
+            key={`${job.position}-${job.startDate}`}
+            className="history-card"
+          >
+            <strong>{job.position}</strong>
+            <p>
+              {job.startDate} → {job.endDate ?? "current"}
+            </p>
+            <p>{formatSalary(job.salary)}</p>
+          </article>
+        ))}
+      </div>
+
       <table className="history-table">
         <thead>
           <tr>
@@ -187,15 +230,7 @@ export function EmployeeDetail({ emplid }: { emplid: string }) {
               <td>{job.position}</td>
               <td>{job.startDate}</td>
               <td>{job.endDate ?? "current"}</td>
-              <td>
-                {job.salary != null
-                  ? job.salary.toLocaleString("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                      maximumFractionDigits: 0,
-                    })
-                  : "—"}
-              </td>
+              <td>{formatSalary(job.salary)}</td>
             </tr>
           ))}
         </tbody>

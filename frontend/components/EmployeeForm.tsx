@@ -153,8 +153,9 @@ export function EmployeeForm({
         aria-labelledby="employee-form-title"
         onClick={(event) => event.stopPropagation()}
       >
+        <div className="modal__handle" aria-hidden />
         <h2 id="employee-form-title">
-          {mode === "create" ? "Add employee" : "Edit employee"}
+          {mode === "create" ? "New employee" : "Edit employee"}
         </h2>
 
         <form className="employee-form" onSubmit={handleSubmit}>
@@ -244,8 +245,12 @@ export function EmployeeForm({
             <button type="button" className="btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn-primary" disabled={saving}>
-              {saving ? "Saving…" : mode === "create" ? "Add employee" : "Save"}
+            <button
+              type="submit"
+              className="btn-primary btn-block"
+              disabled={saving}
+            >
+              {saving ? "Saving…" : mode === "create" ? "Create employee" : "Save changes"}
             </button>
           </div>
         </form>

@@ -1,7 +1,7 @@
 {
   "name": "peoplesoft-graphql-starter",
   "private": true,
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Course: Using GraphQL to get PeopleSoft data — Next.js + Apollo BFF with mock/real Integration Broker",
   "courseScriptIndex": "Courses/SCRIPT_COURSE_LINKS.md",
   "scripts": {
