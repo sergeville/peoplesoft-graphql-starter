@@ -11,6 +11,7 @@ Runnable helpers in this folder. Each file header and console output points at t
 | `bump-patch-version.mjs` | `npm run version:patch` / pre-commit |
 | `install-apollo-mcp.sh` | `npm run mcp:install` (Section 13) |
 | `run-apollo-mcp.sh` | `npm run dev:mcp` (Section 13) |
+| `archon-show-and-tell.sh` | (manual) Archon Cursor presence |
 
 Backend data scripts: `backend/scripts/` — see the same index.  
 Apollo MCP config: `apollo-mcp/` — [MODULE_13](../Courses/MODULE_13_APOLLO_MCP_AGENTS.md).

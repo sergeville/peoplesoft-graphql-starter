@@ -11,3 +11,4 @@ apollo-mcp-server
 
 # Scratch HTML exports (e.g. Gemini); not part of the course
 Courses/HTML/
+.fallow/
