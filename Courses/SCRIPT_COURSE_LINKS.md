@@ -28,6 +28,7 @@ When several modules apply, pick the one you are teaching (**To pick**).
 | [Module 11](./COURSE.md#module-11--real-peoplesoft--row-security) | Production IB | (env only) | [`integrationBrokerClient.ts`](../backend/src/peoplesoft/integrationBrokerClient.ts) — [PEOPLESOFT_IB_ROW_SECURITY](./PEOPLESOFT_IB_ROW_SECURITY.md) |
 | [Module 12](./COURSE.md#module-12--capstone-project) | Ship / ops | `npm run build`, `npm run stack:docker` | root + `backend/` + `frontend/` `package.json` |
 | [Section 13](./MODULE_13_APOLLO_MCP_AGENTS.md) | Agents → MCP Server → MCP Apps Client | `npm run dev:mcp`, `npm run dev:with-mcp`, `npm run mcp:inspect` | [`apollo-mcp/`](../apollo-mcp/), [`run-apollo-mcp.sh`](../scripts/run-apollo-mcp.sh) |
+| (ops) Archon visibility | Cursor show-and-tell | `./scripts/archon-show-and-tell.sh --activity "…"` | [`archon-show-and-tell.sh`](../scripts/archon-show-and-tell.sh) |
 | [GOOGLE_SHEET_AS_MOCK_PS](./GOOGLE_SHEET_AS_MOCK_PS.md) | Sheet as mock PS | `npm run dev` | [`google-apps-script-mock-ps.gs`](./google-apps-script-mock-ps.gs) |
 | [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) | End-to-end trace | Mode A: `dev`; B: `dev:mock-ps` | See [CODE_PATH](CODE_PATH_GRAPHQL_TO_PS.md) |
 | [Troubleshooting](./COURSE.md#troubleshooting-guide) | Free ports | `npm run stack:stop` | [`stop-dev-stack.sh`](../scripts/stop-dev-stack.sh) |

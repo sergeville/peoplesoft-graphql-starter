@@ -687,17 +687,47 @@ Index: [SCRIPT_COURSE_LINKS § Module 8](./SCRIPT_COURSE_LINKS.md#by-course-modu
 ```mermaid
 flowchart TD
   subgraph APP[frontend/app]
-    L[layout.tsx · ApolloWrapper]
-    P[page.tsx · EmployeeList]
+    L[layout.tsx · ThemeProvider + ApolloWrapper]
+    P[page.tsx · EmployeeList in AppShell]
     D[employee/id/page.tsx · EmployeeDetail]
   end
   subgraph COMP[frontend/components]
+    AS[AppShell.tsx · header search tabs]
     EL[EmployeeList.tsx]
     ED[EmployeeDetail.tsx]
     EF[EmployeeForm.tsx]
+    TS[ThemeSwitcher.tsx]
     AW[ApolloWrapper.tsx]
   end
+  subgraph STYLE[frontend/styles]
+    TH[themes.css · data-theme tokens]
+    FX[flux-ui.css · hr-dashboard-ui.css · crextio-ui.css]
+  end
+  L --> AS
+  AS --> EL
+  AS --> TS
+  TH --> FX
 ```
+
+The UI is styled as a **mobile employee app**: bottom tab bar, avatars, search, and bottom-sheet modals for create/edit. [`AppShell.tsx`](../frontend/components/AppShell.tsx) wraps list and detail pages.
+
+### Themes (switchable chrome)
+
+[`ThemeProvider.tsx`](../frontend/components/ThemeProvider.tsx) sets `html[data-theme]` from [`lib/theme.ts`](../frontend/lib/theme.ts). Learners can compare three reference layouts:
+
+| Theme id | Label | Role in course |
+|----------|-------|----------------|
+| `flux` | Flux | Default dark mobile shell |
+| `hr-dashboard` | HR Dashboard | Card/dashboard reference |
+| `crextio` | Crextio | Alternate HR platform look |
+
+Plus utility themes: `light`, `dark`, `ocean`, `forest`, `violet`. Choice persists in `localStorage` (`employee-app-theme`). Reference PNGs live under [`frontend/public/`](../frontend/public/).
+
+**Lab 8.0 — Theme switch**
+
+1. Run `npm run dev:frontend` (or full `npm run dev` / Docker UI on `:3001`).
+2. Open the theme menu in the header; switch Flux → HR Dashboard → Crextio.
+3. In DevTools, confirm `<html data-theme="…">` changes and CSS variables update.
 
 ### Client components
 
@@ -732,6 +762,7 @@ Apollo Client:
 
 - What is the difference between `page.tsx` and `EmployeeList.tsx`?
 - Why is Apollo configured with `uri: "/api/graphql"`?
+- What sets the active theme, and where do theme-specific styles live?
 
 ---
 

@@ -74,6 +74,13 @@ WORKFLOW_BODY=$(cat <<EOF
 EOF
 )
 
+register_cursor_agent() {
+  curl -sS -m 10 -X POST "$ARCHON_URL/api/agents/register" \
+    -H 'Content-Type: application/json' \
+    -d '{"name":"cursor","role":"IDE Agent","capabilities":["edit","run","review"],"metadata":{"executor_type":"cursor"}}' \
+    >/dev/null 2>&1 || true
+}
+
 echo "Archon: $ARCHON_URL"
 echo "--- POST /api/agents/cursor/heartbeat"
 echo "$HEARTBEAT_BODY"
@@ -81,6 +88,14 @@ HB_CODE=$(curl -sS -m 10 -o /tmp/archon-hb-$$.json -w "%{http_code}" \
   -X POST "$ARCHON_URL/api/agents/cursor/heartbeat" \
   -H 'Content-Type: application/json' \
   -d "$HEARTBEAT_BODY") || { echo "Heartbeat request failed" >&2; exit 1; }
+if [ "$HB_CODE" -ge 400 ] 2>/dev/null && grep -q "not found" /tmp/archon-hb-$$.json 2>/dev/null; then
+  echo "Agent missing — registering cursor, retrying heartbeat"
+  register_cursor_agent
+  HB_CODE=$(curl -sS -m 10 -o /tmp/archon-hb-$$.json -w "%{http_code}" \
+    -X POST "$ARCHON_URL/api/agents/cursor/heartbeat" \
+    -H 'Content-Type: application/json' \
+    -d "$HEARTBEAT_BODY") || { echo "Heartbeat retry failed" >&2; exit 1; }
+fi
 echo "HTTP $HB_CODE"
 cat /tmp/archon-hb-$$.json
 echo ""

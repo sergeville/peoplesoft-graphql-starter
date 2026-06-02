@@ -12,3 +12,7 @@ apollo-mcp-server
 # Scratch HTML exports (e.g. Gemini); not part of the course
 Courses/HTML/
 .fallow/
+.fallowrc.json
+
+# Local theme reference screenshots (copies live under frontend/public/)
+/*.png
