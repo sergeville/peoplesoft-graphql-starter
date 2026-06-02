@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Archon — Cursor presence</title>
+  <style>
+    :root { color-scheme: dark light; font-family: ui-sans-serif, system-ui, sans-serif; }
+    body { margin: 0; padding: 1.25rem; background: #0f1419; color: #e7ecf3; line-height: 1.5; }
+    h1 { font-size: 1.1rem; margin: 0 0 0.25rem; }
+    .sub { color: #9aa7b8; font-size: 0.85rem; margin-bottom: 1rem; }
+    .card { background: #171d26; border: 1px solid #2a3441; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    .label { color: #7d8da3; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .value { margin-top: 0.25rem; word-break: break-word; }
+    .status { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+    .status.busy { background: #3b2a00; color: #ffc857; }
+    .status.active { background: #0d3320; color: #6ee7a0; }
+    .status.inactive { background: #2a2a2a; color: #aaa; }
+    .err { color: #ff8a8a; }
+    a { color: #7cb8ff; }
+    footer { margin-top: 1rem; font-size: 0.8rem; color: #7d8da3; }
+    code { font-size: 0.85em; background: #0b1016; padding: 0.1rem 0.35rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Cursor → Archon presence</h1>
+  <p class="sub">Lightweight viewer — works in Cursor and Safari. Archon full UI at <code>:3737</code> is a Vite dev SPA and may render blank when disk is full; use this page or the API at <code>:8181</code>.</p>
+
+  <div id="error" class="card err" hidden></div>
+  <div id="agent" class="card"><div class="label">Agent registry</div><div id="agent-body" class="value">Loading…</div></div>
+  <div id="workflow" class="card"><div class="label">workflow:cursor</div><div id="workflow-body" class="value">Loading…</div></div>
+
+  <footer>Refreshes every 5s · API <code id="api-url"></code> · <span id="updated"></span></footer>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const ARCHON = (params.get("archon") || "http://127.0.0.1:8181").replace(/\/$/, "");
+    document.getElementById("api-url").textContent = ARCHON;
+
+    function esc(s) {
+      return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function statusClass(s) {
+      return ["busy", "active", "waiting", "validating", "blocked"].includes(s) ? s : "inactive";
+    }
+
+    async function load() {
+      const errEl = document.getElementById("error");
+      errEl.hidden = true;
+      try {
+        const [agentRes, ctxRes] = await Promise.all([
+          fetch(`${ARCHON}/api/agents/cursor`),
+          fetch(`${ARCHON}/api/context/workflow%3Acursor`),
+        ]);
+        if (!agentRes.ok) throw new Error(`Agent API HTTP ${agentRes.status}`);
+        if (!ctxRes.ok) throw new Error(`Context API HTTP ${ctxRes.status}`);
+        const agentJson = await agentRes.json();
+        const ctxJson = await ctxRes.json();
+        const agent = agentJson.agent || agentJson;
+        const ctx = (ctxJson.context && ctxJson.context.value) || ctxJson.value || {};
+
+        document.getElementById("agent-body").innerHTML = `
+          <div><span class="status ${statusClass(agent.status)}">${esc(agent.status || "unknown")}</span></div>
+          <div style="margin-top:0.5rem"><strong>${esc(agent.name)}</strong> · ${esc(agent.role || "agent")}</div>
+          <div style="margin-top:0.35rem">${esc(agent.metadata?.task_summary || "—")}</div>
+          <div style="margin-top:0.35rem;color:#9aa7b8;font-size:0.85rem">${esc(agent.metadata?.project_path || "")}</div>
+          <div style="margin-top:0.2rem;color:#9aa7b8;font-size:0.85rem">branch: ${esc(agent.metadata?.branch || "—")} · last_seen: ${esc(agent.last_seen || "—")}</div>`;
+
+        const ttl = ctx.activity_ttl_seconds || 60;
+        const started = ctx.activity_started_at ? Date.parse(ctx.activity_started_at) : 0;
+        const fresh = started && (Date.now() - started) / 1000 <= ttl;
+
+        document.getElementById("workflow-body").innerHTML = `
+          <div style="margin-top:0.25rem">${fresh ? "🟢" : "⚪"} ${esc(ctx.current_activity || "(no activity — re-run show-and-tell)")}</div>
+          <div style="margin-top:0.35rem">task: ${esc(ctx.current_task || "—")}</div>
+          <div style="margin-top:0.2rem;color:#9aa7b8;font-size:0.85rem">last_beat: ${esc(ctx.last_beat || "—")} · TTL ${ttl}s</div>`;
+
+        document.getElementById("updated").textContent = "Updated " + new Date().toLocaleTimeString();
+      } catch (e) {
+        errEl.hidden = false;
+        errEl.textContent = e.message + " — is Archon running on " + ARCHON + "?";
+        document.getElementById("agent-body").textContent = "—";
+        document.getElementById("workflow-body").textContent = "—";
+      }
+    }
+
+    load();
+    setInterval(load, 5000);
+  </script>
+</body>
+</html>

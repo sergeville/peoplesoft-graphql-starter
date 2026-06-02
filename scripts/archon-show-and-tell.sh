@@ -3,27 +3,33 @@
 #
 # Usage:
 #   ./scripts/archon-show-and-tell.sh --activity "Short live activity" [--task "current task"] [--status busy]
-#   ARCHON_URL=http://127.0.0.1:8181 ./scripts/archon-show-and-tell.sh --activity "..." --task "..."
+#   npm run archon:show -- --activity "Working on Module 8"
 #
 # Options:
-#   --activity   Operator-visible activity (workflow balloon + metadata context)
+#   --activity   Operator-visible activity (workflow balloon + metadata context) [required]
 #   --task       current_task / task_summary (default: same as --activity)
 #   --status     Agent status: busy|active|waiting|validating|blocked|inactive (default: busy)
 #   --phase      current_phase metadata (optional)
-#   --archon-url Archon base URL (default: ARCHON_URL or http://127.0.0.1:8181)
+#   --ttl        activity_ttl_seconds for Ops Center balloon (default: 300)
+#   --archon-url Archon API base URL (default: ARCHON_URL or http://127.0.0.1:8181)
+#   --open       Open lightweight presence viewer in browser (default on macOS)
+#   --no-open    Skip opening browser
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ARCHON_URL="${ARCHON_URL:-http://127.0.0.1:8181}"
 ARCHON_URL="${ARCHON_URL%/}"
+PRESENCE_VIEW_PORT="${ARCHON_PRESENCE_VIEW_PORT:-3877}"
 
 ACTIVITY=""
 TASK=""
 STATUS="busy"
 PHASE=""
+TTL=300
+OPEN_BROWSER=""
 
 usage() {
-  sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
   exit "${1:-0}"
 }
 
@@ -33,11 +39,21 @@ while [ $# -gt 0 ]; do
     --task) TASK="${2:-}"; shift 2 ;;
     --status) STATUS="${2:-}"; shift 2 ;;
     --phase) PHASE="${2:-}"; shift 2 ;;
+    --ttl) TTL="${2:-}"; shift 2 ;;
     --archon-url) ARCHON_URL="${2:-}"; ARCHON_URL="${ARCHON_URL%/}"; shift 2 ;;
+    --open) OPEN_BROWSER=1; shift ;;
+    --no-open) OPEN_BROWSER=0; shift ;;
     -h|--help) usage 0 ;;
     *) echo "Unknown option: $1" >&2; usage 1 ;;
   esac
 done
+
+if [ -z "$OPEN_BROWSER" ]; then
+  case "$(uname -s)" in
+    Darwin) OPEN_BROWSER=1 ;;
+    *) OPEN_BROWSER=0 ;;
+  esac
+fi
 
 if [ -z "$ACTIVITY" ]; then
   echo "Missing required --activity" >&2
@@ -57,12 +73,13 @@ REPO="$(git -C "$ROOT" remote get-url origin 2>/dev/null || true)"
 PROJECT_PATH="$ROOT"
 LAST_BEAT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ACTIVITY_STARTED_AT="$LAST_BEAT"
-TTL=60
 
-PHASE_JSON=""
-if [ -n "$PHASE" ]; then
-  PHASE_JSON=",\"current_phase\":\"$(json_escape "$PHASE")\""
-fi
+register_cursor_agent() {
+  curl -sS -m 10 -X POST "$ARCHON_URL/api/agents/register" \
+    -H 'Content-Type: application/json' \
+    -d '{"name":"cursor","role":"IDE Agent","capabilities":["edit","run","review"],"metadata":{"executor_type":"cursor"}}' \
+    >/dev/null 2>&1 || true
+}
 
 HEARTBEAT_BODY=$(cat <<EOF
 {"status":"$(json_escape "$STATUS")","metadata":{"executor_type":"cursor","project_path":"$(json_escape "$PROJECT_PATH")","repo":"$(json_escape "$REPO")","branch":"$(json_escape "$BRANCH")","task_summary":"$(json_escape "$TASK")","current_phase":"$(json_escape "${PHASE:-show-and-tell}")","operator_visible":true}}
@@ -74,22 +91,16 @@ WORKFLOW_BODY=$(cat <<EOF
 EOF
 )
 
-register_cursor_agent() {
-  curl -sS -m 10 -X POST "$ARCHON_URL/api/agents/register" \
-    -H 'Content-Type: application/json' \
-    -d '{"name":"cursor","role":"IDE Agent","capabilities":["edit","run","review"],"metadata":{"executor_type":"cursor"}}' \
-    >/dev/null 2>&1 || true
-}
+register_cursor_agent
 
 echo "Archon: $ARCHON_URL"
 echo "--- POST /api/agents/cursor/heartbeat"
-echo "$HEARTBEAT_BODY"
 HB_CODE=$(curl -sS -m 10 -o /tmp/archon-hb-$$.json -w "%{http_code}" \
   -X POST "$ARCHON_URL/api/agents/cursor/heartbeat" \
   -H 'Content-Type: application/json' \
   -d "$HEARTBEAT_BODY") || { echo "Heartbeat request failed" >&2; exit 1; }
-if [ "$HB_CODE" -ge 400 ] 2>/dev/null && grep -q "not found" /tmp/archon-hb-$$.json 2>/dev/null; then
-  echo "Agent missing — registering cursor, retrying heartbeat"
+if [ "$HB_CODE" -ge 400 ] 2>/dev/null; then
+  echo "Heartbeat HTTP $HB_CODE — retrying after register"
   register_cursor_agent
   HB_CODE=$(curl -sS -m 10 -o /tmp/archon-hb-$$.json -w "%{http_code}" \
     -X POST "$ARCHON_URL/api/agents/cursor/heartbeat" \
@@ -101,7 +112,6 @@ cat /tmp/archon-hb-$$.json
 echo ""
 
 echo "--- PUT /api/context/workflow%3Acursor"
-echo "$WORKFLOW_BODY"
 WF_CODE=$(curl -sS -m 10 -o /tmp/archon-wf-$$.json -w "%{http_code}" \
   -X PUT "$ARCHON_URL/api/context/workflow%3Acursor" \
   -H 'Content-Type: application/json' \
@@ -114,4 +124,29 @@ rm -f /tmp/archon-hb-$$.json /tmp/archon-wf-$$.json
 
 if [ "$HB_CODE" -ge 400 ] 2>/dev/null || [ "$WF_CODE" -ge 400 ] 2>/dev/null; then
   exit 1
+fi
+
+ENC_ARCHON=$(printf '%s' "$ARCHON_URL" | python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))")
+VIEW_URL="http://127.0.0.1:${PRESENCE_VIEW_PORT}/archon-presence-view.html?archon=${ENC_ARCHON}"
+
+ensure_presence_viewer() {
+  if lsof -iTCP:"$PRESENCE_VIEW_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    return 0
+  fi
+  python3 -m http.server "$PRESENCE_VIEW_PORT" --bind 127.0.0.1 --directory "$ROOT/scripts" \
+    >/tmp/archon-presence-view.log 2>&1 &
+  disown 2>/dev/null || true
+  sleep 0.4
+}
+
+if [ "$OPEN_BROWSER" = "1" ]; then
+  ensure_presence_viewer
+  echo "--- View presence (Cursor-safe)"
+  echo "$VIEW_URL"
+  if command -v open >/dev/null 2>&1; then
+    open "$VIEW_URL"
+  fi
+else
+  echo "--- View: start viewer with: npm run archon:presence"
+  echo "$VIEW_URL"
 fi
