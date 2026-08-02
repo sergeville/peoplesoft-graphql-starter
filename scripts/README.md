@@ -12,7 +12,8 @@ Runnable helpers in this folder. Each file header and console output points at t
 | `install-apollo-mcp.sh` | `npm run mcp:install` (Section 13) |
 | `run-apollo-mcp.sh` | `npm run dev:mcp` (Section 13) |
 | `archon-show-and-tell.sh` | `npm run archon:show` |
-| `archon-presence-view.sh` / `.html` | `npm run archon:presence` |
+| `ollama-chat.sh` / `.html` | `npm run ollama:chat` |
+| `ollama-ask.sh` | `npm run ollama:ask -- "question"` |
 
 Backend data scripts: `backend/scripts/` — see the same index.  
 Apollo MCP config: `apollo-mcp/` — [MODULE_13](../Courses/MODULE_13_APOLLO_MCP_AGENTS.md).

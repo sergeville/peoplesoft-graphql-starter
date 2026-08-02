@@ -1,7 +1,7 @@
 {
   "name": "peoplesoft-graphql-starter",
   "private": true,
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Course: Using GraphQL to get PeopleSoft data — Next.js + Apollo BFF with mock/real Integration Broker",
   "courseScriptIndex": "Courses/SCRIPT_COURSE_LINKS.md",
   "scripts": {
@@ -25,7 +25,9 @@
     "dev:with-mcp": "concurrently -n backend,mcp -c blue,magenta \"npm run dev:backend\" \"npm run dev:mcp\"",
     "mcp:inspect": "npx -y @modelcontextprotocol/inspector http://127.0.0.1:8000/mcp --transport http",
     "archon:show": "sh scripts/archon-show-and-tell.sh",
-    "archon:presence": "sh scripts/archon-presence-view.sh"
+    "archon:presence": "sh scripts/archon-presence-view.sh",
+    "ollama:chat": "sh scripts/ollama-chat.sh",
+    "ollama:ask": "sh scripts/ollama-ask.sh"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
